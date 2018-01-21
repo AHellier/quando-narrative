@@ -10,10 +10,13 @@
     TIME_COLOUR: '#ffb3b3',
     LEAP_MOTION_COLOUR: '#aaaaaa',
     DEVICE_COLOUR: '#e6ccff',
+    EXPERIMENT_COLOUR: '#bbbbbb',
     VISITOR_COLOUR: '#FFE000',
     BLOCKLY_SATURATION: 1, // default for hue only colour - probably not used anymore - see http://colorizer.org/
-    BLOCKLY_VALUE: 1 // ditto
+    BLOCKLY_VALUE: 1, // ditto
   }
+  const ICON_PRODUCE_VALUE = '\u26A1' // \uD83D\uDD33'
+  const ICON_CONSUME_VALUE = '\u26A1' // \uD83D\uDD32'
 
   let ajax_get = (url, callback) => {
     let xhr = new XMLHttpRequest()
@@ -22,6 +25,51 @@
     }
     xhr.open('GET', url, true)
     xhr.send(null)
+  }
+
+  function _defineBlock(json, category, colour) {
+      json.category = category
+      if (!quando_editor.exists(json.colour)) {
+          json.colour = colour
+      }
+      return quando_editor.defineBlock(json)
+  }
+
+  self.defineAdvanced = (json) => {
+      return _defineBlock(json, 'quando_advanced', self.CONFIG.ADVANCED_COLOUR)
+  }
+  self.defineDisplay = (json) => {
+      return _defineBlock(json, 'quando_display', self.CONFIG.DISPLAY_COLOUR)
+  }
+  self.defineMedia = (json) => {
+      return _defineBlock(json, 'quando_media', self.CONFIG.MEDIA_COLOUR)
+  }
+  self.defineStyle = (json) => {
+      return _defineBlock(json, 'quando_style', self.CONFIG.STYLE_COLOUR)
+  }
+  self.defineClient = (json) => {
+      return _defineBlock(json, 'quando_client', self.CONFIG.CLIENT_COLOUR)
+  }
+  self.defineTime = (json) => {
+      return _defineBlock(json, 'quando_time', self.CONFIG.TIME_COLOUR)
+  }
+  self.defineLeap = (json) => {
+      return _defineBlock(json, 'quando_leap', self.CONFIG.DEVICE_COLOUR)
+  }
+  self.defineMicrobit = (json) => {
+      return _defineBlock(json, 'quando_microbit', self.CONFIG.DEVICE_COLOUR)
+  }
+  self.defineCursor = (json) => {
+      return _defineBlock(json, 'quando_cursor', self.CONFIG.DEVICE_COLOUR)
+  }
+  self.defineRobot = (json) => {
+      return _defineBlock(json, 'quando_robot', self.CONFIG.DEVICE_COLOUR)
+  }
+  self.defineDevice = (json) => {
+      return _defineBlock(json, 'quando_device', self.CONFIG.DEVICE_COLOUR)
+  }
+  self.defineExperiment = (json) => {
+      return _defineBlock(json, 'quando_experiment', self.CONFIG.EXPERIMENT_COLOUR)
   }
 
   self.addBlocks = (quando_editor) => {
@@ -33,7 +81,7 @@
     let UNITS_MENU = 'UNITS_MENU'
 
     let EVERY_BLOCK = 'Every'
-    quando_editor.defineTime({
+    self.defineTime({
       name: EVERY_BLOCK,
       interface: [
                 { name: DURATION, title: '', number: '1' }, MENU_UNITS_HOURS,
@@ -57,7 +105,7 @@
       }
     })
 
-    quando_editor.defineTime({
+    self.defineTime({
       name: 'After',
       interface: [
                 { name: DURATION, title: '', number: '1' }, MENU_UNITS_HOURS,
@@ -84,7 +132,7 @@
     })
 
     let ID_GREETING = 'Greeting'
-    quando_editor.defineMedia({
+    self.defineMedia({
       name: 'Show "',
       title: 'Show Text',
       interface: [{ name: ID_GREETING, title: '"', text: '.type your text here..' }, { title: '"' }],
@@ -94,7 +142,7 @@
     })
 
     let SHOW_TITLE = 'Show Title'
-    quando_editor.defineMedia({
+    self.defineMedia({
       name: 'Show Title "',
       interface: [{ name: SHOW_TITLE, title: '', text: '.type your title here..' }, { title: '"' }],
       javascript: (block) => {
@@ -114,7 +162,7 @@
     }
 
     let COLOUR = 'colour'
-    quando_editor.defineStyle({
+    self.defineStyle({
       name: 'Background',
       title: 'Background Display Colour',
       interface: [
@@ -129,7 +177,7 @@
 
     let IMAGE = 'Images'
     let FILE_IMAGE = {name: IMAGE, title: '', file: 'images'}
-    quando_editor.defineMedia({
+    self.defineMedia({
       name: 'Display',
       title: '\uD83D\uDCF7 Show Image',
       interface: [ FILE_IMAGE ],
@@ -145,7 +193,7 @@
     let MEDIA_LOOP_MENU = 'MEDIA_LOOP_MENU'
     let CHECK_STOP_WITH_DISPLAY = '   With display'
     let FILE_VIDEO = { name: VIDEO, title: '', file: 'video' }
-    quando_editor.defineMedia({
+    self.defineMedia({
       name: 'Show Video',
       title: '\uD83D\uDCFA Play',
       interface: [
@@ -164,7 +212,7 @@
     })
     let AUDIO = 'Audio'
     let FILE_AUDIO = {name: AUDIO, title: '', file: 'audio'}
-    quando_editor.defineMedia({
+    self.defineMedia({
       name: 'Play',
       title: '\uD83D\uDD0A Play',
       interface: [
@@ -187,7 +235,7 @@
     let CHECK_VIDEO = ' Video'
     let CHECK_AUDIO = ' Audio'
     let CLEAR = 'Clear'
-    quando_editor.defineMedia({
+    self.defineMedia({
       name: CLEAR,
       interface: [
                 { name: CHECK_TEXT, check: false },
@@ -220,7 +268,7 @@
     let DIG_COLOUR = 0
     let WHEN_VITRINE_BLOCK = 'When Display Case'
     let WHEN_VITRINE_TEXT = 'title'
-    quando_editor.defineDisplay({
+    self.defineDisplay({
       name: WHEN_VITRINE_BLOCK,
       title: 'When Display',
       next: false,
@@ -298,7 +346,7 @@
     }
     let LABEL_TO_BLOCK = 'Label to'
     let LABEL_TEXT = 'text'
-    quando_editor.defineDisplay({
+    self.defineDisplay({
             // TODO must be in a vitrine...?
       name: LABEL_TO_BLOCK,
       title: 'Label',
@@ -313,7 +361,7 @@
 
     let SHOW_DISPLAY = 'Show Display'
     let SHOW_DISPLAY_MENU = 'show display menu'
-    quando_editor.defineDisplay({
+    self.defineDisplay({
       name: SHOW_DISPLAY,
       interface: [{
         name: LABEL_TO_MENU,
@@ -331,7 +379,7 @@
 
     let WHEN_LABEL_BLOCK = 'When Label'
     let WHEN_LABEL_TEXT = 'When label text'
-    quando_editor.defineDisplay({
+    self.defineDisplay({
       name: WHEN_LABEL_BLOCK,
       interface: [
                 { name: WHEN_LABEL_TEXT, title: '', text: '**Put label text here**' },
@@ -348,7 +396,7 @@
     let STYLE_BLOCK = 'Style'
     let STYLE_MENU = 'style'
     let DIV_MENU = 'div'
-    quando_editor.defineStyle({
+    self.defineStyle({
       name: STYLE_BLOCK,
       title: '',
       interface: [
@@ -388,7 +436,7 @@
 
     let FONT_SIZE_BLOCK = 'Font Size'
     let FONT_SIZE = 'font size'
-    quando_editor.defineStyle({
+    self.defineStyle({
       name: FONT_SIZE_BLOCK,
       interface: [
                 { menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '.quando_label']],
@@ -406,7 +454,7 @@
 
     let FONT_TYPE_BLOCK = 'Font'
     let FONT_NAME_MENU = 'font name'
-    quando_editor.defineStyle({
+    self.defineStyle({
       name: FONT_TYPE_BLOCK,
       interface: [
                 { menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '.quando_label']],
@@ -434,29 +482,25 @@
     })
 
     let EXPLORATION_RULE = 'Exploration Rule'
-    quando_editor.defineBlock({
+    self.defineExperiment({
       name: EXPLORATION_RULE,
       title: 'When',
-      category: 'experiment',
-      colour: '#55bb55',
       interface: [
                 { name: 'title', title: '', text: ''},
-                { name: 'text', title: '', text: ''}
+                { name: 'text', title: '', text: ''},
+                { statement: STATEMENT }
       ],
       extras: [
                 { name: 'text3', title: '', text: ''},
                 { name: 'text4', title: '', text: ''},
-                { name: 'text5', title: '', text: ''},
-                { statement: STATEMENT }
+                { name: 'text5', title: '', text: ''}
       ]
     })
 
     let EXPLORATION_ACTION = 'Exploration Action'
-    quando_editor.defineBlock({
+    self.defineExperiment({
       name: EXPLORATION_ACTION,
       title: 'Do',
-      category: 'experiment',
-      colour: '#5555bb',
       interface: [
                 { name: 'title', title: '', text: ''},
                 { name: 'text', title: '', text: ''}
@@ -468,7 +512,7 @@
       ]
     })
 
-    quando_editor.defineDevice({
+    self.defineDevice({
       name: 'When Device',
       interface: [
                 { name: 'name', title: '', text: 'Box' },
@@ -487,7 +531,7 @@
     })
 
     let MICROBIT_GESTURE_MENU = 'MicroBit Gesture'
-    quando_editor.defineMicrobit({
+    self.defineMicrobit({
       name: 'When micro:bit',
       interface: [
                 { menu: [['Up', 'ubitUp'], ['Down', 'ubitDown'], ['Forward', 'ubitForward'],
@@ -536,7 +580,7 @@
 
 
     let LEAP_GESTURE_MENU = 'Leap Gesture Menu'
-    quando_editor.defineLeap({
+    self.defineLeap({
       name: 'When Leap',
       interface: [
                 { menu: [['Fist', 'handClosed'], ['Flat', 'handOpen']], name: LEAP_GESTURE_MENU, title: '' },
@@ -556,7 +600,7 @@
 
     let WHEN_IDLE = 'When Idle for'
     let ACTIVE_STATEMENT = 'ACTIVE_STATEMENT'
-    quando_editor.defineTime({
+    self.defineTime({
       name: WHEN_IDLE,
       next: false,
       previous: false,
@@ -580,7 +624,7 @@
       }
     })
 
-    quando_editor.defineTime({
+    self.defineTime({
       name: 'Check',
       interface: [
                 { name: FREQUENCY, title: '', number: 1 },
@@ -618,7 +662,7 @@
     let CONTENT_POSITION = 'Position'
     let DIRECTION_MENU = 'Direction'
     let POSITION_SIZE = 'Position Size'
-    quando_editor.defineClient({
+    self.defineClient({
       name: CONTENT_POSITION,
       interface: [
         { menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
@@ -643,7 +687,7 @@
 
     let CONTENT_SIZE = 'Size'
     let DIMENSION_MENU = 'Dimension'
-    quando_editor.defineClient({
+    self.defineClient({
       name: CONTENT_SIZE,
       interface: [
         { menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
@@ -662,7 +706,7 @@
     })
 
     let PROJECTION_ACTION = 'Projection Action'
-    quando_editor.defineDisplay({
+    self.defineDisplay({
       name: PROJECTION_ACTION,
       title: '',
       interface: [
@@ -689,28 +733,39 @@
     let CHANGE_CURSOR_MENU = 'Cursor menu'
     let DEVICE_LEFT_RIGHT = '\u21D4'
     let DEVICE_UP_DOWN = '\u21D5'
-    
-    quando_editor.defineCursor({
-      name: VALUE_CURSOR,
+    let CHANGE_MID_VALUE = 'Middle'
+    let CHANGE_PLUS_MINUS = 'plus minus'
+    self.defineCursor({
+      name: VALUE_CURSOR, title: ICON_CONSUME_VALUE + ' Change Cursor',
       interface: [
         { name: CHANGE_CURSOR_MENU,
           title: '',
           menu: [[DEVICE_LEFT_RIGHT, 'quando.cursor_left_right'],
             [DEVICE_UP_DOWN, 'quando.cursor_up_down']]
-          }
+        }
+      ],
+      extras: [
+        {name: CHANGE_MID_VALUE, number: 50}, {title: '%'},
+        {name: CHANGE_PLUS_MINUS, title: '+/-', number: 50}, {title: '%'}
       ],
       javascript: (block) => {
-        let value = quando_editor.getMenu(block, CHANGE_CURSOR_MENU)
-        let result = `${value}(val);\n`
+        let fn = quando_editor.getMenu(block, CHANGE_CURSOR_MENU)
+        let extras = {}
+        let mid = quando_editor.getNumber(block, CHANGE_MID_VALUE) / 100
+        let plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS) / 100
+        // converted to 0..1 format
+        extras.min = mid-plus_minus
+        extras.max = mid+plus_minus
+        extras = JSON.stringify(extras)
+        let result = `${fn}(val, ${extras});\n`
         return result
       }
     })
 
     let MOVE_3D_OBJECT = 'Change 3D Object'
     let CHANGE_3D_OBJECT_MENU = '3D Object menu'
-    let CHANGE_PLUS_MINUS = 'plus minus'
-    quando_editor.defineDevice({
-      name: MOVE_3D_OBJECT, title:'Move 3D Object',
+    self.defineDevice({
+      name: MOVE_3D_OBJECT, title: ICON_CONSUME_VALUE + ' Move 3D Object',
       interface: [
         { name: CHANGE_3D_OBJECT_MENU,
           title: '',
@@ -721,25 +776,28 @@
           }
       ],
       extras: [
-        {name: CHANGE_PLUS_MINUS, title: '+/-', number: 15}, {title: 'cm'}
+        {name: CHANGE_MID_VALUE, number: 0}, {title: 'cm'},
+        {name: CHANGE_PLUS_MINUS, title: '+/-', number: 5}, {title: 'cm'}
       ],
       javascript: (block) => {
-        let value = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
+        let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
         let extras = {}
         // convert to mm
-        var plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
-        extras.min = -plus_minus
-        extras.max = plus_minus
+        let mid = 10 * quando_editor.getNumber(block, CHANGE_MID_VALUE)
+        let plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        extras.min = mid-plus_minus
+        extras.max = mid+plus_minus
         extras = JSON.stringify(extras)
-        let result = `${value}(val);\n`
+        let result = `${fn}(val, ${extras});\n`
         return result
       }
     })
 
     let ROTATE_3D_OBJECT = 'Rotate 3D Object'
     let ROTATE_3D_OBJECT_MENU = '3D Object menu'
-    quando_editor.defineDevice({
-      name: ROTATE_3D_OBJECT,
+    let CHANGE_MID_ANGLE = 'Change Angle'
+    self.defineDevice({
+      name: ROTATE_3D_OBJECT, title: ICON_CONSUME_VALUE + ' Rotate 3D Object',
       interface: [
         { name: ROTATE_3D_OBJECT_MENU,
           title: '',
@@ -750,17 +808,18 @@
           }
       ],
       extras: [
-        {name: CHANGE_PLUS_MINUS, title: '+/-', number: 15}, {title: 'cm'}
+        {name: CHANGE_MID_ANGLE, title: '', number: 0}, {title: 'degrees'},
+        {name: CHANGE_PLUS_MINUS, title: '+/-', number: 180}, {title: 'degrees'}
       ],
       javascript: (block) => {
-        let value = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
+        let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
         let extras = {}
-        // convert to mm
-        var plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
-        extras.min = -plus_minus
-        extras.max = plus_minus
+        let mid = quando_editor.getNumber(block, CHANGE_MID_ANGLE)
+        let plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        extras.min = mid-plus_minus
+        extras.max = mid+plus_minus
         extras = JSON.stringify(extras)
-        let result = `${value}(val);\n`
+        let result = `${fn}(val, ${extras});\n`
         return result
       }
     })
@@ -773,17 +832,16 @@
     let CHANGE_HEADING = '\u21D4 Heading'
     let CHANGE_MAG_X = 'Mag X'
     let CHANGE_MAG_Y = 'Mag Y'
-    let CHANGE_MID_ANGLE = 'Change Angle'
     let CHECK_INVERTED = 'Inverted'
 
-    quando_editor.defineMicrobit({
-      name: CHANGE_WITH_MICROBIT_ANGLE,
+    self.defineMicrobit({
+      name: CHANGE_WITH_MICROBIT_ANGLE, title: 'When micro:bit angle',
       interface: [
-        { name: CHANGE_VARIABLE,
-          title: '',
+        { name: CHANGE_VARIABLE, title: '',
           menu: [CHANGE_HEADING, CHANGE_PITCH, CHANGE_ROLL,
             // CHANGE_MAG_X, CHANGE_MAG_Y
           ]},
+        { title: ICON_PRODUCE_VALUE},
         { statement: STATEMENT }
       ],
       extras: [
@@ -824,12 +882,13 @@
     let LEAP_LEFT_RIGHT = '\u21D4'
     let LEAP_HEIGHT = '\u21D5'
     let LEAP_DEPTH = '\u2922 In-Out'
-    quando_editor.defineLeap({
+    self.defineLeap({
       name: CHANGE_WITH_LEAP_DISTANCE,
       interface: [
         { name: CHANGE_VARIABLE,
           title: '',
           menu: [LEAP_LEFT_RIGHT, LEAP_HEIGHT, LEAP_DEPTH]},
+        { title: ICON_PRODUCE_VALUE},
         { statement: STATEMENT }
       ],
       extras: [
@@ -839,7 +898,7 @@
       javascript: (block) => {
         let extras = {}
         // convert to mm
-        var plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        let plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
         extras.min = -plus_minus
         extras.max = plus_minus
         let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
@@ -848,7 +907,7 @@
             break
           case LEAP_HEIGHT: variable = 'Y'
             extras.min = 100 // 10 cm is minimum height set
-            extras.max = 2 * plus_minus + 100 // ste to the right height...
+            extras.max = 2 * plus_minus + 100 // set to the right height...
             break
           case LEAP_DEPTH: variable = 'Z'
             break
@@ -867,13 +926,14 @@
 
     let CHANGE_WITH_LEAP_ANGLE = 'When Leap angle'
     let CHANGE_YAW = '\u21D4 Yaw'
-    quando_editor.defineLeap({
+    self.defineLeap({
       name: CHANGE_WITH_LEAP_ANGLE,
       interface: [
         { name: CHANGE_VARIABLE,
           title: '',
           menu: [CHANGE_YAW, CHANGE_PITCH, CHANGE_ROLL]},
-          { statement: STATEMENT }
+        { title: ICON_PRODUCE_VALUE},
+        { statement: STATEMENT }
       ],
       extras: [
         {name: CHANGE_MID_ANGLE, title: '', number: 0}, {title: 'degrees'},
@@ -907,7 +967,7 @@
 
     let SHOW_OBJECT3D = 'Object3D'
     let FILE_OBJECT3D = '\uD83C\uDF81 Show 3D Object'
-    quando_editor.defineMedia({
+    self.defineMedia({
       name: SHOW_OBJECT3D,
       title: '',
       interface: [ {name: FILE_OBJECT3D, file: 'objects'} ],
@@ -920,7 +980,7 @@
 
     let DESCRIPTION_BLOCK = 'Description'
     let DESCRIPTION_TEXT = 'description_text'
-    quando_editor.defineAdvanced({
+    self.defineAdvanced({
       name: DESCRIPTION_BLOCK, title:' ',
       interface: [{name:DESCRIPTION_TEXT, title:' ', text:''},
         { statement: STATEMENT }
@@ -938,7 +998,7 @@
 
     let SCRIPT_BLOCK = 'Javascript: '
     let SCRIPT_TEXT = 'script_text'
-    quando_editor.defineAdvanced({
+    self.defineAdvanced({
       name: SCRIPT_BLOCK,
       interface: [{name:SCRIPT_TEXT, title:'', text:''}
       ],
@@ -950,7 +1010,7 @@
 
     let CURSOR_COLOUR_BLOCK = 'Cursor Opacity'
     let OPACITY = 'Opacity'
-    quando_editor.defineCursor({
+    self.defineCursor({
       name: CURSOR_COLOUR_BLOCK, title: 'Cursor',
       interface: [
         { name: COLOUR, title: '', colour: '#ffcc00' },
@@ -972,7 +1032,7 @@
 
     let CURSOR_SIZE_BLOCK = 'Cursor'
     let SIZE = 'Size'
-    quando_editor.defineCursor({
+    self.defineCursor({
       name: CURSOR_SIZE_BLOCK,
       interface: [
         { name: SIZE, title: 'Size', number: 4.4 }, {title: '% of width'},
@@ -984,6 +1044,63 @@
         result = `quando.${method}('#cursor', ['width','height'], '${size}vw');\n`
         result += `quando.${method}('#cursor', ['margin-left', 'margin-top'], '${margin}vw');\n`
         return result
+      }
+    })
+
+    function _getIndividualChildCode(start, prefix, postfix, separator) {
+      let result = ''
+      let child = start
+      while (child != null) {
+        let code = quando_editor.getIndividualBlockCode(child)
+        if (result != '') {
+          result += separator
+        }
+        result += prefix + code + postfix
+        child = child.getNextBlock()
+      }
+      return result
+    }
+
+    let PICK_RANDOM_BLOCK = 'Pick one at Random'
+    self.defineAdvanced({
+      name: PICK_RANDOM_BLOCK, title:'\uD83C\uDFB2 Pick Random',
+      interface: [
+        { statement: STATEMENT }
+      ],
+      javascript : (block) => {
+        let stateBlock = block.getInputTargetBlock(STATEMENT)
+        let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
+        return `quando.pick_random([\n${arr}\n])\n`
+      }
+    })
+
+    let PICK_ONE_BLOCK = 'Pick one'
+    self.defineAdvanced({
+      name: PICK_ONE_BLOCK, title: ICON_CONSUME_VALUE + PICK_ONE_BLOCK,
+      interface: [
+        { statement: STATEMENT }
+      ],
+      javascript : (block) => {
+        let id = block.id
+        let stateBlock = block.getInputTargetBlock(STATEMENT)
+        let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
+        quando_editor.pushToSetup(`quando.setOnId('${id}', [${arr}])\n`)
+        return `quando.pick(val, quando.getOnId('${id}'))\n`
+      }
+    })
+
+    let PICK_ONE_EACH_BLOCK = 'Pick one each time'
+    self.defineAdvanced({
+      name: PICK_ONE_EACH_BLOCK,
+      interface: [
+        { statement: STATEMENT }
+      ],
+      javascript : (block) => {
+        let id = block.id
+        let stateBlock = block.getInputTargetBlock(STATEMENT)
+        let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
+        quando_editor.pushToSetup(`quando.setOnId('${id}', [${arr}])\n`)
+        return `quando.pick_one_each_time(quando.getOnId('${id}'))\n`
       }
     })
 
