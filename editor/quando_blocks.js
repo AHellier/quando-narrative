@@ -72,6 +72,10 @@
       return _defineBlock(json, 'quando_experiment', self.CONFIG.EXPERIMENT_COLOUR)
   }
 
+  self.defineVisitor = (json) => {
+    return _defineBlock(json, 'quando_visitor', self.CONFIG.VISITOR_COLOUR)
+}
+
   self.addBlocks = (quando_editor) => {
     let STATEMENT = 'STATEMENT'
     let DURATION = 'DURATION'
@@ -555,9 +559,9 @@
       }
     })
 
-
+    
     let VISITOR_PROXIMITY_MENU = 'Visitor proximity'
-    quando_editor.defineVisitor({
+    self.defineVisitor({
       name: 'When visitor',
       interface: [
                 { menu: [['is close to the exhibit', 'ubitClose'],
