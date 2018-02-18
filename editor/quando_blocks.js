@@ -326,7 +326,7 @@
         if (block.type == PREFIX + WHEN_VITRINE_BLOCK) {
           _update_menus(ev, block.id, quando_editor.getText(block, WHEN_VITRINE_TEXT))
         }
-        quando_editor.updateExtras(block) // Any Extras menu will be updated
+        quando_editor.updateExtras(block, true) // Any Extras menu will be updated, including children
       } else if (ev.type == Blockly.Events.DELETE) {
         _update_menus(ev, ev.ids[0])
       }
@@ -501,6 +501,7 @@
       name: EXPLORATION_RULE,
       title: 'When',
       interface: [
+<<<<<<< HEAD
         { name: 'title', title: '', text: '' },
         { name: 'text', title: '', text: '' },
         { statement: STATEMENT }
@@ -509,6 +510,17 @@
         { name: 'text3', title: '', text: '' },
         { name: 'text4', title: '', text: '' },
         { name: 'text5', title: '', text: '' }
+=======
+                { name: 'title', title: '', text: ''},
+                { name: 'text', title: '', text: ''},
+                { extras: [
+                  { name: 'text3', title: '', text: ''},
+                  { name: 'text4', title: '', text: ''},
+                  { name: 'text5', title: '', text: ''}
+                  ]
+                },
+                { statement: STATEMENT },
+>>>>>>> master
       ]
     })
 
@@ -517,6 +529,7 @@
       name: EXPLORATION_ACTION,
       title: 'Do',
       interface: [
+<<<<<<< HEAD
         { name: 'title', title: '', text: '' },
         { name: 'text', title: '', text: '' }
       ],
@@ -524,6 +537,15 @@
         { name: 'text3', title: '', text: '' },
         { name: 'text4', title: '', text: '' },
         { name: 'text5', title: '', text: '' }
+=======
+                { name: 'title', title: '', text: ''},
+                { name: 'text', title: '', text: ''},
+                { extras : [
+                  { name: 'text3', title: '', text: ''},
+                  { name: 'text4', title: '', text: ''},
+                  { name: 'text5', title: '', text: ''}
+                ] }
+>>>>>>> master
       ]
     })
 
@@ -800,12 +822,21 @@
           name: CHANGE_CURSOR_MENU,
           title: '',
           menu: [[DEVICE_LEFT_RIGHT, 'quando.cursor_left_right'],
+<<<<<<< HEAD
           [DEVICE_UP_DOWN, 'quando.cursor_up_down']]
         }
       ],
       extras: [
         { name: CHANGE_MID_VALUE, number: 50 }, { title: '%' },
         { name: CHANGE_PLUS_MINUS, title: '+/-', number: 50 }, { title: '%' }
+=======
+            [DEVICE_UP_DOWN, 'quando.cursor_up_down']]
+        },
+        { extras: [
+          {name: CHANGE_MID_VALUE, number: 50}, {title: '%'},
+          {name: CHANGE_PLUS_MINUS, title: '+/-', number: 50}, {title: '%'}
+        ] },
+>>>>>>> master
       ],
       javascript: (block) => {
         let fn = quando_editor.getMenu(block, CHANGE_CURSOR_MENU)
@@ -833,11 +864,19 @@
             [DEVICE_LEFT_RIGHT, 'quando.object3d.left_right'],
             [DEVICE_UP_DOWN, 'quando.object3d.up_down'],
             ['Zoom', 'quando.object3d.in_out']]
+<<<<<<< HEAD
         }
       ],
       extras: [
         { name: CHANGE_MID_VALUE, number: 0 }, { title: 'cm' },
         { name: CHANGE_PLUS_MINUS, title: '+/-', number: 5 }, { title: 'cm' }
+=======
+          },
+          { extras: [
+            {name: CHANGE_MID_VALUE, number: 0}, {title: 'cm'},
+            {name: CHANGE_PLUS_MINUS, title: '+/-', number: 5}, {title: 'cm'}
+          ] },
+>>>>>>> master
       ],
       javascript: (block) => {
         let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
@@ -866,11 +905,19 @@
             ['\u21D4 Yaw', 'quando.object3d.yaw'],
             ['\u21D5 Pitch', 'quando.object3d.pitch'],
             ['\u2939\u2938 Roll', 'quando.object3d.roll']]
+<<<<<<< HEAD
         }
       ],
       extras: [
         { name: CHANGE_MID_ANGLE, title: '', number: 0 }, { title: 'degrees' },
         { name: CHANGE_PLUS_MINUS, title: '+/-', number: 180 }, { title: 'degrees' }
+=======
+          },
+          { extras: [
+            {name: CHANGE_MID_ANGLE, title: '', number: 0}, {title: 'degrees'},
+            {name: CHANGE_PLUS_MINUS, title: '+/-', number: 180}, {title: 'degrees'}
+          ] },
+>>>>>>> master
       ],
       javascript: (block) => {
         let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
@@ -902,6 +949,7 @@
           name: CHANGE_VARIABLE, title: '',
           menu: [CHANGE_HEADING, CHANGE_PITCH, CHANGE_ROLL,
             // CHANGE_MAG_X, CHANGE_MAG_Y
+<<<<<<< HEAD
           ]
         },
         { title: ICON_PRODUCE_VALUE },
@@ -912,6 +960,17 @@
         { name: CHANGE_PLUS_MINUS, title: '+/-', number: 25 }, { title: 'degrees' },
         { name: CHECK_INVERTED, check: false }
       ],
+=======
+          ]},
+        { title: ICON_PRODUCE_VALUE},
+        { extras: [
+          {name: CHANGE_MID_ANGLE, title: '', number: 0}, {title: 'degrees'},
+          {name: CHANGE_PLUS_MINUS, title: '+/-', number: 25}, {title: 'degrees'},
+          {name: CHECK_INVERTED, check: false}
+        ] },
+        { statement: STATEMENT }
+      ],
+>>>>>>> master
       javascript: (block) => {
         let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
         switch (variable) {
@@ -951,6 +1010,7 @@
         {
           name: CHANGE_VARIABLE,
           title: '',
+<<<<<<< HEAD
           menu: [LEAP_LEFT_RIGHT, LEAP_HEIGHT, LEAP_DEPTH]
         },
         { title: ICON_PRODUCE_VALUE },
@@ -960,6 +1020,16 @@
         { name: CHANGE_PLUS_MINUS, title: '+/-', number: 15 }, { title: 'cm' },
         { name: CHECK_INVERTED, check: false }
       ],
+=======
+          menu: [LEAP_LEFT_RIGHT, LEAP_HEIGHT, LEAP_DEPTH]},
+        { title: ICON_PRODUCE_VALUE},
+        { extras: [
+          {name: CHANGE_PLUS_MINUS, title: '+/-', number: 15}, {title: 'cm'},
+          {name: CHECK_INVERTED, check: false}
+        ] },
+        { statement: STATEMENT }
+      ],
+>>>>>>> master
       javascript: (block) => {
         let extras = {}
         // convert to mm
@@ -997,6 +1067,7 @@
         {
           name: CHANGE_VARIABLE,
           title: '',
+<<<<<<< HEAD
           menu: [CHANGE_YAW, CHANGE_PITCH, CHANGE_ROLL]
         },
         { title: ICON_PRODUCE_VALUE },
@@ -1007,6 +1078,17 @@
         { name: CHANGE_PLUS_MINUS, title: '+/-', number: 25 }, { title: 'degrees' },
         { name: CHECK_INVERTED, check: false }
       ],
+=======
+          menu: [CHANGE_YAW, CHANGE_PITCH, CHANGE_ROLL]},
+        { title: ICON_PRODUCE_VALUE},
+        { extras: [
+          {name: CHANGE_MID_ANGLE, title: '', number: 0}, {title: 'degrees'},
+          {name: CHANGE_PLUS_MINUS, title: '+/-', number: 25}, {title: 'degrees'},
+          {name: CHECK_INVERTED, check: false}
+        ] },
+        { statement: STATEMENT }
+      ],
+>>>>>>> master
       javascript: (block) => {
         let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
         switch (variable) {
