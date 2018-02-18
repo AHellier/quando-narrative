@@ -10,6 +10,8 @@ const find_microbit = (error, success) => {
       ports.forEach((port) => {
         if ((port.vendorId == '0D28') && (port.productId == '0204')) {
           comName = port.comName
+          console.log(comName)
+          serialport.write
         }
       })
       if (comName != null) {
@@ -33,6 +35,7 @@ exports.get_serial = (error, success) => {
     })
   })
 }
+
 /* e.g.
 get_serial((err)=>{console.log("Error:" + err)},
     (serial)=>{

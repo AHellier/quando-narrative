@@ -72,6 +72,33 @@
       }
     })
   }
+
+  self.handle_create_user = () => {
+    let userid = $('#newUserId').val()
+    let password = $('#newPassword').val()
+    let message_elem = $('#create_user_modal_footer_message')
+    message_elem.html('Creating User... ')
+    $.ajax({
+      url: '/create_user',
+      type: 'POST',
+      data: { 'userid': userid, 'password': password },
+      success: (res, status, xhr) => {
+        if (res.success) {
+          message_elem.html('')
+          _success('New user created')
+          $('#create_user_modal').modal('toggle')
+          _userid = userid
+          _show_user_status()
+        } else {
+          message_elem.html('Failed: ' + res.message)
+        }
+      },
+      error: () => {
+        message_elem.html('Failed to find server ')
+      }
+    })
+  }
+
   self.handle_load = () => {
     if (_userid) {
       _remote_load_list()

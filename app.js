@@ -9,6 +9,7 @@ const body_parser = require('body-parser')
 const script = require('./script')
 const client_deploy = './client/deployed_js/'
 const user = require('./user')
+const visitor = require('./visitor')
 const mongo_store = require('connect-mongo')(session)
 const path = require('path')
 
@@ -19,11 +20,22 @@ const io = require('socket.io')(http)
 const ubit = require('./ubit')
 
 let connected = false
+var microbit_id
+var remoteMicrobit = 1
+var connectedMicroBit = 1
+let returningMicrobit = null
+let filename = null
 
 let server = http.listen(process.env.PORT || 80, () => {
   let host = process.env.IP || server.address().address
   let port = server.address().port
   console.log('Quando Server listening at http://%s:%s', host, port)
+//  var stream = fs.createWriteStream("D:/test.txt");
+ // stream.once('open', function(fd) {
+ //   stream.write("hello\r\n");
+  //  stream.write("hello\r\n");
+  //  stream.end();
+ // });
 })
 
 const MEDIA_FOLDER = path.join(__dirname, 'client', 'media')
@@ -31,12 +43,12 @@ const MEDIA_MAP = {
   'video': ['ogg', 'ogv', 'mp4', 'webm'],
   'audio': ['mp3'],
   'images': ['bmp', 'jpg', 'jpeg', 'png'],
-  'objects': ['gltf', 'glb'], 
+  'objects': ['gltf', 'glb'],
   // 'objects': ['obj', 'mtl'],
 }
 {
   let upload = []
-  Object.keys(MEDIA_MAP).map((key)=>{upload = upload.concat(MEDIA_MAP[key])})
+  Object.keys(MEDIA_MAP).map((key) => { upload = upload.concat(MEDIA_MAP[key]) })
   MEDIA_MAP['UPLOAD'] = upload
 }
 
@@ -52,15 +64,17 @@ app.use(session({
   saveUninitialized: true,
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
-        // name: may need this later - if sessions exist for clients...
+    // name: may need this later - if sessions exist for clients...
     httpOnly: false
   },
   store: new mongo_store({ url: 'mongodb://127.0.0.1/quando' })
 }))
+
 app.use('/', (req, res, next) => {
-    // console.log(">>" + JSON.stringify(req.session.user))
+  //   console.log(">>" + JSON.stringify(req.session.user))
   next()
 })
+
 app.get('/login', (req, res) => {
   if ((req.session) && (req.session.user)) {
     res.json({ 'success': true, 'userid': req.session.user.id })
@@ -68,10 +82,12 @@ app.get('/login', (req, res) => {
     res.json({ 'success': false, 'message': 'Not Logged In' })
   }
 })
+
 app.use(body_parser.urlencoded({ extended: true }))
 app.use(body_parser.json())
 app.post('/login', (req, res) => {
   let body = req.body
+  console.log(body)
   if (body.userid && body.password) {
     user.getOnIdPassword(body.userid, body.password).then((result) => {
       req.session.user = result
@@ -91,28 +107,28 @@ app.delete('/login', (req, res) => {
 
 app.post('/script', (req, res) => {
   script.save(req.body.name, req.body.id, req.body.userid, req.body.script).then(
-        (doc) => { res.json({ 'success': true }) },
-        (err) => { res.json({ 'success': false, 'message': err }) })
+    (doc) => { res.json({ 'success': true }) },
+    (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.get('/script/names/:userid', (req, res) => {
   script.getNamesOnOwnerID(req.params.userid).then(
-        (list) => { res.json({ 'success': true, 'list': list }) },
-        (err) => { res.json({ 'success': false, 'message': err }) })
+    (list) => { res.json({ 'success': true, 'list': list }) },
+    (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.get('/script/id/:id', (req, res) => {
   let id = req.params.id
   script.getOnId(id).then(
-        (result) => { res.json({ 'success': true, 'doc': result }) },
-        (err) => { res.json({ 'success': false, 'message': err }) })
+    (result) => { res.json({ 'success': true, 'doc': result }) },
+    (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.delete('/script/id/:id', (req, res) => {
   let id = req.params.id
   script.deleteOnId(id).then(
-        (doc) => { res.json({ 'success': true }) },
-        (err) => { res.json({ 'success': false, 'message': err }) })
+    (doc) => { res.json({ 'success': true }) },
+    (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.put('/script/deploy/:filename', (req, res) => {
@@ -121,74 +137,182 @@ app.put('/script/deploy/:filename', (req, res) => {
   fs.writeFile(client_deploy + filename, script, (err) => {
     if (!err) {
       res.json({ 'success': true })
-      io.emit('deploy', {script: filename})
+      io.emit('deploy', { script: filename })
     } else {
       res.json({ 'success': false, 'message': 'Failed to deploy script' })
     }
   })
 })
 
+/*app.get('/create_user', (req, res) => {
+  if ((req.session) && (req.session.user)) {
+    res.json({ 'success': true, 'message': 'New user created'})
+  } else {
+    res.json({ 'success': false, 'message': 'User not created' })
+  }
+})*/
+
+
+app.post('/create_user', (req, res) => {
+  var body = req.body
+  console.log(body)
+  if (body.userid && body.password) {
+    user.save(body.userid, body.password, null).then((result) => {
+      req.session.user = result
+      res.json({ 'success': true })
+    }, (err) => {
+      res.json({ 'success': false, 'message': 'Creating user failed, please try again' + err })
+    })
+  } else {
+    res.json({ 'success': false, 'message': 'Need User Id and password' })
+  }
+})
+
+app.post('/create_visitor', (req, res) => {
+  var body = req.body
+  console.log(body)
+  if (body.email != '') {
+    visitor.save(body.email, body.password, body.firstName, remoteMicrobit, body.session).then((result) => {
+
+      console.log("Visitor successfully registered")
+    }, (err) => {
+      console.log("Visitor registration failed")
+    })
+  } else {
+    console.log("Invalid email address")
+  }
+})
+
+
 let reported = false
-function ubit_error (err) {
+function ubit_error(err) {
   if (!reported && err) {
     console.log(err)
     reported = true
     console.log("Micro:Bit disconnected")
-    io.emit('ubit', {Disconnected: 'true'})
+    if (filename != null) {
+      visitor.drop(filename)
+     // visitor.deleteMany(connectedMicroBit)
+    //  returningMicrobit = null
+      remoteMicrobit = 1
+      connectedMicroBit = 1
+      visitor.previousVisitor = null
+    }
+    io.emit('ubit', { Disconnected: 'true' })
     connected = false
-  } 
+  }
   setTimeout(() => { ubit.get_serial(ubit_error, ubit_success) }, 1000)
-    // Checks every second for plugged in micro:bit
+  // Checks every second for plugged in micro:bit
   //  console.log("checking for microbit")
 }
 
-function ubit_success (serial) {
+function ubit_success(serial) {
   reported = false
   connected = true
   let orientation = false
   let proximity = false;
-  io.emit('ubit', {Connected: 'true'})
+  let lastRemoteMicrobit = null
+  let checked = false
+  let compared = false
+
+  io.emit('ubit', { Connected: 'true' })
   serial.on('data', (data) => {
     try {
       let ubit = JSON.parse(data)
       if (ubit && io) {
-        console.log(data)
+       console.log(data)
+      // console.log(ubit)
+      // serial.write("hello\n")
+    //   console.log(serial)
+        if (checked == true) {
+          checked = false
+          compared = true
+        }
+        if ((visitor.previousVisitor == true) && (compared == true)) {
+          console.log("Returning visitor")
+          var visitorData = { previousVisitor: true };
+          io.emit("visitor", visitorData)
+          visitor.previousVisitor = null
+          compared = false
+          sleep(2000, serial)
+        } else if ((visitor.previousVisitor == false) && (compared == true)) {
+          console.log("Visiting for the first time")
+          var visitorData = { previousVisitor: false };
+          io.emit("visitor", visitorData)
+          visitor.previousVisitor = null
+          compared = false
+     /*     var stream = fs.createWriteStream("D:/test.txt");
+          stream.once('open', function(fd) {
+            stream.write(filename + "\r\n");
+            stream.end();
+          });*/
+        }
+
+
         if (ubit.Paired) {
-         console.log("Micro:Bit Paired") 
-        io.emit('ubit', {'proximity': ubit.Paired})
-        } 
+          console.log("Micro:Bit Paired")
+         // io.emit('ubit', { 'proximity': ubit.Paired })
+        }
         if (ubit.button_a) {
-          io.emit('ubit', {button: 'a'})
+          io.emit('ubit', { button: 'a' })
         }
         if (ubit.button_b) {
-          io.emit('ubit', {button: 'b'})
+          io.emit('ubit', { button: 'b' })
+          console.log(returningMicrobit)
         }
         if (ubit.ir) {
-          io.emit('ubit', {ir: true})
+          io.emit('ubit', { ir: true })
         }
         if (ubit.mag_x) {
-          io.emit('ubit', {'mag_x': ubit.mag_x, 'mag_y': ubit.mag_y})
+          io.emit('ubit', { 'mag_x': ubit.mag_x, 'mag_y': ubit.mag_y })
           // console.log(ubit.mag_x, ubit.mag_y)
         }
         if (ubit.orientation) {
-          io.emit('ubit', {'orientation': ubit.orientation})
+          io.emit('ubit', { 'orientation': ubit.orientation })
         }
         if (ubit.heading) {
-          io.emit('ubit', {'heading': ubit.heading})
+          io.emit('ubit', { 'heading': ubit.heading })
         }
         if (ubit.roll_pitch) {
           let roll = ubit.roll_pitch[0]
           let pitch = ubit.roll_pitch[1]
-          io.emit('ubit', {'roll': roll, 'pitch': pitch})
+          io.emit('ubit', { 'roll': roll, 'pitch': pitch })
         }
-        if (ubit.proximity){
-          io.emit('ubit', {'proximity': ubit.proximity})
+        if (ubit.proximity) {
+          io.emit('ubit', { 'proximity': ubit.proximity })
         }
-      } 
-
+        if (ubit.serial) {
+          io.emit('ubit', { 'serial': ubit.serial })
+          if (ubit.serial != undefined) {
+            microbit_id = ubit.serial
+            if (microbit_id.charAt(0) == "C") {
+              connectedMicroBit = microbit_id
+              //visitor.searchCreate(connectedMicroBit)
+              // visitor.search(connectedMicroBit)
+            }
+            else if (microbit_id.charAt(0) == "R") {
+              remoteMicrobit = microbit_id
+            if (remoteMicrobit != lastRemoteMicrobit) {
+             //   if (connectedMicroBit != 1) {
+                  visitor.findInsert(filename, remoteMicrobit)
+                  lastRemoteMicrobit = remoteMicrobit
+             //     returningMicrobit = "B" + remoteMicrobit
+                  checked = true
+             //   }
+              }
+            }
+          }
+        }
+      }
+     /* serial.write('main screen turn on', function(err) {
+        if (err) {
+          return console.log('Error on write: ', err.message);
+        }
+        console.log('message written');
+      });*/
     } catch (err) {
       console.log(err + ':' + data)
-      connected = false 
+      connected = false
     }
   })
   serial.on('disconnect', ubit_error)
@@ -270,13 +394,17 @@ app.use('/client/favicon.ico', express.static(path.join(client_dir, 'favicon.ico
 app.use('/client/deployed_js', express.static(path.join(client_dir, 'deployed_js')))
 
 app.get('/client/js/:filename', (req, res) => {
-  let filename = req.params.filename
+  filename = req.params.filename
+  console.log(filename)
+  if (filename != null){
+  visitor.searchCreate(filename)
+  }
   fs.readFile('./client/client.htm', 'utf8', (err, data) => {
     if (err) {
       res.redirect('/client/setup')
     } else {
       res.write(data.replace(/\[\[TITLE\]\]/,
-                filename.replace(/\.js/, '')).replace(/\[\[DEPLOYED_JS\]\]/, filename))
+        filename.replace(/\.js/, '')).replace(/\[\[DEPLOYED_JS\]\]/, filename))
       res.end()
     }
   })
@@ -297,8 +425,26 @@ app.get('/client/js', (req, res) => {
   })
 })
 
-app.use('/client', express.static(path.join(client_dir, 'index.html')))
+function sleep(miliseconds, serial) {
+  var currentTime = new Date().getTime();
+  var message = filename
+  var write = false
+  while (currentTime + miliseconds >= new Date().getTime()) {
+    if (write == false){
+      //serial.write("hello\n")
+      serial.write(message, function(err) {
+        if (err) {
+          return console.log('Error on write: ', err.message);
+        }
+        console.log('message written:' + message);
+       //  console.log(serial)
+      });
+      write = true;
+    }
+  }
+}
 
-// user.save("test5", "test4", null).then(
-//     () => { console.log("Success") },
-//     (err) => { console.log("Fail : ", err) } )
+app.use('/client', express.static(path.join(client_dir, 'index.html')))
+app.get('/visitor', function (req, res) {
+  res.sendFile(path.join(__dirname + '/client/visitor.html'));
+});

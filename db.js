@@ -1,3 +1,4 @@
+
 'use strict'
 const mongodb = require('mongodb')
 
@@ -78,3 +79,199 @@ exports.remove = (collection_name, query, options) => {
     }, fail)
   })
 }
+
+exports.create = (collection_name) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      database.createCollection(collection_name, function (err, res) {
+        if (err) throw err
+        console.log("Collection created!")
+        db.close();
+        success()
+      })
+    })
+  })
+}
+
+exports.drop = (collection_name) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      database.collection(collection_name).drop(function (err, del) {
+        if (err) throw err
+        if (del) console.log("Collection deleted");
+        db.close();
+        success()
+      })
+    })
+  })
+}
+
+
+exports.insert = (collection_name, doc, flag) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      var document = { _id: doc, returned: flag }
+      database.collection(collection_name).insertOne(document, function (err, res) {
+        if (err) console.log("document already exists")
+        console.log("1 document inserted")
+        db.close();
+        success()
+      })
+    })
+  })
+}
+
+exports.searchCreate = (collection_name) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      database.listCollections().toArray(function (err, collInfos) {
+        if (err) throw err
+        //  console.log(collInfos);
+        for (var i = 0; i < collInfos.length; i++) {
+          var index = -1
+          if (collInfos[i].name == collection_name) {
+            index = i
+            break
+          }
+        }
+        //console.log(index)
+        if (index == -1) {
+          exports.create(collection_name)
+        } else {
+          console.log("Collection already exists")
+        }
+        success()
+      })
+    })
+  })
+}
+
+exports.search = (collection_name) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      database.listCollections().toArray(function (err, collInfos) {
+        if (err) throw err
+        console.log(collInfos)
+        success()
+      })
+    })
+  })
+}
+
+exports.findInsert = (collection_name, doc) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      database.collection(collection_name).findOne({ _id: doc }, function (err, result) {
+        if (err) {
+          throw err
+        }  else if (result == null) {
+          exports.insert(collection_name, doc, false)
+          success(false)
+        } else {
+          console.log("Document already exists in collection")
+          exports.update(collection_name, doc, true)
+          success(true)
+        }
+        db.close()
+      })
+    })
+  })
+}
+
+exports.update = (collection_name, doc, flag) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      var prevDoc = { _id: doc, returned: false }
+      var newDoc = { _id: doc, returned: true }
+      database.collection(collection_name).updateOne(prevDoc, newDoc, function (err, res) {
+        if (err) throw err
+        console.log("1 document updated")
+        db.close()
+        success()
+      })
+    })
+  })
+}
+
+exports.remove = (collection_name, query, options) => {
+  return new Promise((success, fail) => {
+    collection(collection_name).then((_collection) => {
+      _collection.remove(query, options, (err, removed_count) => {
+        if (err) {
+          fail(err)
+        }
+        if (removed_count == 0) {
+          fail(Error('No Scripts to Remove')) // needs fixing...
+        } else {
+          success()
+        }
+      })
+    }, fail)
+  })
+}
+
+exports.deleteMany = (collection_name) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      var allDocuments = { _id: /^R/ }
+      database.collection(collection_name).deleteMany(allDocuments, function (err, obj) {
+        if (err) throw err
+        console.log(obj.result.n + " document(s) deleted")
+        db.close()
+        success()
+      })
+    })
+  })
+}
+
+/*
+exports.find = (collection_name, doc) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      collection(collection_name).then((_collection) => {
+        database.collection(collection_name).findOne({ _id: doc }, function (err, result) {
+          if (err) {
+            throw err
+          }// else if (result == null) {
+           // console.log("collection empty")
+            // console.log(result)
+
+           if ((result != null) && (result.returned == true)) {
+           // console.log("visitor returned")
+          //  var returned = "B" + result._id
+            success(true)
+          } else if ((result != null) && (result.returned == false)) {
+            // console.log("visitor first visit")
+           // var first = result._id
+            success(false)
+          } else {
+            console.log(result)
+            console.log("Document does not exist")
+            success(false)
+          }
+          db.close()
+        })
+      }, fail)
+    })
+  })
+}
+*/
+

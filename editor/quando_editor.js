@@ -527,6 +527,10 @@
         }
         return self.defineBlock(json)
     }
+    /*
+    self.defineUser = (json) => {
+        return _defineBlock(json, 'quando_visitor', self.CONFIG.USER_COLOUR)
+    }*/
 
     self.defineVisitor = (json) => {
         return _defineBlock(json, 'quando_visitor', self.CONFIG.VISITOR_COLOUR)

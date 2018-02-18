@@ -6,8 +6,9 @@
   var self = quando.ubit = {}
   self.last_gesture = ''
   var lastProximity = ''
- 
-  function dispatch_gesture (gesture_name) {
+  var lastSerial = ''
+
+  function dispatch_gesture(gesture_name) {
     if (gesture_name != self.last_gesture) {
       self.last_gesture = gesture_name
       quando.dispatch_event(gesture_name)
@@ -66,7 +67,11 @@
     quando.add_handler('ubitFar', callback, destruct)
   }
 
-  function _handleAngle (event, callback, extras, destruct = true) {
+  self.ubitSerial = function (callback, destruct = true) {
+    quando.add_handler('ubitSerial', callback, destruct)
+  }
+
+  function _handleAngle(event, callback, extras, destruct = true) {
     var scale = quando.new_angle_scaler(extras.mid_angle, extras.plus_minus, extras.inverted)
     quando.add_scaled_handler(event, callback, scale, destruct)
   }
@@ -83,25 +88,27 @@
     _handleAngle('ubitHeading', callback, extras, destruct)
   }
 
-  self.handleMagX = function(callback, extras={}, destruct=true) {
+  self.handleMagX = function (callback, extras = {}, destruct = true) {
     var scale = quando.new_scaler(extras.mid_angle - extras.plus_minus, extras.mid_angle + extras.plus_minus,
       extras.inverted)
     quando.add_scaled_handler("ubitMagX", callback, scale, destruct)
   }
 
-  self.handleMagY = function(callback, extras={}, destruct=true) {
+  self.handleMagY = function (callback, extras = {}, destruct = true) {
     var scale = quando.new_scaler(extras.mid_angle - extras.plus_minus, extras.mid_angle + extras.plus_minus,
       extras.inverted)
     quando.add_scaled_handler("ubitMagY", callback, scale, destruct)
   }
 
 
+
+
   quando.socket.on('ubit', function (data) {
     console.log(data)
     dispatch_gesture('ubitPaired')
-    if (data.Connected == 'true'){
+    if (data.Connected == 'true') {
       dispatch_gesture('ubitConnected')
-    } else if (data.Disconnected == 'true'){
+    } else if (data.Disconnected == 'true') {
       dispatch_gesture('ubitDisconnected')
     }
     if (data.ir) {
@@ -121,9 +128,9 @@
       } else if (data.orientation == 'right') {
         dispatch_gesture('ubitRight')
       } else if (data.orientation == '') { // this is the micro bit started
-          last_gesture = ''
-        }
-      } else if (data.button) {
+        last_gesture = ''
+      }
+    } else if (data.button) {
       quando.idle_reset()
       if (data.button == 'a') {
         quando.dispatch_event('ubitA')
@@ -132,11 +139,11 @@
         quando.dispatch_event('ubitB')
       }
     } else if (data.mag_x || data.mag_y) {
-      quando.dispatch_event('ubitMagX', {'detail': data.mag_x})
-      quando.dispatch_event('ubitMagY', {'detail': data.mag_y})
+      quando.dispatch_event('ubitMagX', { 'detail': data.mag_x })
+      quando.dispatch_event('ubitMagY', { 'detail': data.mag_y })
       quando.idle_reset()
     } else if (data.heading) {
-      quando.dispatch_event('ubitHeading', {'detail': data.heading})
+      quando.dispatch_event('ubitHeading', { 'detail': data.heading })
       quando.idle_reset()
     } else if (data.roll || data.pitch) {
       if (data.roll) {
@@ -144,26 +151,30 @@
         if (roll < 0) {
           roll += 360
         }
-        quando.dispatch_event('ubitRoll', {'detail': roll})
+        quando.dispatch_event('ubitRoll', { 'detail': roll })
       }
       if (data.pitch) {
         var pitch = data.pitch * 180 / Math.PI
         if (pitch < 0) {
           pitch += 360
         }
-        quando.dispatch_event('ubitPitch', {'detail': pitch})
+        quando.dispatch_event('ubitPitch', { 'detail': pitch })
       }
       quando.idle_reset()
-    } if (data.proximity) {
+    } else if (data.proximity) {
       if (data.proximity != lastProximity) {
-        if (data.proximity == 'close'){
-         dispatch_gesture('ubitClose')
-         lastProximity = 'close'
-        }else if (data.proximity == 'far'){
-         dispatch_gesture('ubitFar')
-         lastProximity = 'far'
+        if (data.proximity == 'close') {
+          dispatch_gesture('ubitClose')
+          lastProximity = 'close'
+        } else if (data.proximity == 'far') {
+          dispatch_gesture('ubitFar')
+          lastProximity = 'far'
+        }
       }
-    } 
-  }
+    }/* else if (data.serial) {
+      if (data.serial != lastSerial) {
+        dispatch_gesture('ubitSerial')
+      }
+    } */
   })
 })()

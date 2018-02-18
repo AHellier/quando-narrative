@@ -8,18 +8,18 @@ exports.getOnIdPassword = (id, password) => {
     const options = { limit: 1 }
     const fields = { _id: 0, password: 0 }
     db.getArray(COLLECTION, query, fields, options).then(
-            (result) => {
-              if (result.length == 1) {
-                let user_doc = result[0]
-                user_doc.id = id
-                    // decode the current_script
-                user_doc.script_name = decodeURIComponent(user_doc.script_name)
-                    // no need to store deployed name - will be in script
-                success(user_doc)
-              } else {
-                fail(Error('Failed to find unique user'))
-              }
-            }, fail)
+      (result) => {
+        if (result.length == 1) {
+          let user_doc = result[0]
+          user_doc.id = id
+          // decode the current_script
+          user_doc.script_name = decodeURIComponent(user_doc.script_name)
+          // no need to store deployed name - will be in script
+          success(user_doc)
+        } else {
+          fail(Error('Failed to find unique user'))
+        }
+      }, fail)
   })
 }
 
@@ -29,3 +29,5 @@ exports.save = (userid, password, script_name) => {
     db.save(COLLECTION, doc).then(success, fail)
   })
 }
+
+
