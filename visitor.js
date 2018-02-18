@@ -25,28 +25,28 @@ exports.drop = (collectionName) => {
   })
 }
 
-exports.insert = (collectionName, doc, flag) => {
+exports.insert = (collectionName, doc, exhibitName) => {
   return new Promise((success, fail) => {
-    db.insert(collectionName, doc, flag).then(success, fail)
+    db.insert(collectionName, doc, exhibitName).then(success, fail)
   })
 }
 
-exports.findInsert = (collectionName, doc) => {
+exports.findInsert = (collectionName, doc, exhibitName) => {
   return new Promise((success, fail) => {
-    db.findInsert(collectionName, doc).then(function (result) {
+    db.findInsert(collectionName, doc, exhibitName).then(function (result) {
      // console.log(result)
       exports.previousVisitor = result
     })
   })
 }
 
-exports.find = (collectionName, doc, flag) => {
+exports.updateDocs = (collectionName, serial) => {
   return new Promise((success, fail) => {
-    db.find(collectionName, doc, flag).then(function (result) {
+    db.updateDocs(collectionName, serial).then(function (result) {
       // if(success){
-     console.log(result)
+    // console.log(result)
      // if (serialId != null) {
-        exports.serialId = result
+     //   exports.serialId = result
         success()
    //   }
       //  }
@@ -54,9 +54,9 @@ exports.find = (collectionName, doc, flag) => {
   })
 }
 
-exports.update = (collection_name, doc, flag) => {
+exports.update = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
-    db.update(collectionName, doc, flag).then(success, fail)
+    db.update(collectionName, doc, exhibitName).then(success, fail)
   })
 }
 
@@ -66,15 +66,21 @@ exports.searchCreate = (collectionName) => {
   })
 }
 
-exports.search = (collectionName) => {
+exports.search = () => {
   return new Promise((success, fail) => {
-    db.search(collectionName).then(success, fail)
+    db.search().then(success, fail)
   })
 }
 
 exports.deleteMany = (collectionName) => {
   return new Promise((success, fail) => {
     db.deleteMany(collectionName).then(success, fail)
+  })
+}
+
+exports.deleteOne = (collectionName, doc) => {
+  return new Promise((success, fail) => {
+    db.deleteOne(collectionName, doc).then(success, fail)
   })
 }
 

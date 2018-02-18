@@ -8,6 +8,7 @@ const session = require('express-session')
 const body_parser = require('body-parser')
 const script = require('./script')
 const client_deploy = './client/deployed_js/'
+var fileNames = fs.readdirSync('./client/deployed_js/');
 const user = require('./user')
 const visitor = require('./visitor')
 const mongo_store = require('connect-mongo')(session)
@@ -30,12 +31,6 @@ let server = http.listen(process.env.PORT || 80, () => {
   let host = process.env.IP || server.address().address
   let port = server.address().port
   console.log('Quando Server listening at http://%s:%s', host, port)
-//  var stream = fs.createWriteStream("D:/test.txt");
- // stream.once('open', function(fd) {
- //   stream.write("hello\r\n");
-  //  stream.write("hello\r\n");
-  //  stream.end();
- // });
 })
 
 const MEDIA_FOLDER = path.join(__dirname, 'client', 'media')
@@ -255,6 +250,11 @@ function ubit_success(serial) {
         }
         if (ubit.button_a) {
           io.emit('ubit', { button: 'a' })
+          for (var i = 0; i < fileNames.length; i++){
+            //console.log(fileNames[i])
+            //visitor.deleteOne(fileNames[i], remoteMicrobit)
+            visitor.drop(fileNames[i])
+        }
         }
         if (ubit.button_b) {
           io.emit('ubit', { button: 'b' })
@@ -294,7 +294,7 @@ function ubit_success(serial) {
               remoteMicrobit = microbit_id
             if (remoteMicrobit != lastRemoteMicrobit) {
              //   if (connectedMicroBit != 1) {
-                  visitor.findInsert(filename, remoteMicrobit)
+                  visitor.findInsert(filename, remoteMicrobit, filename)
                   lastRemoteMicrobit = remoteMicrobit
              //     returningMicrobit = "B" + remoteMicrobit
                   checked = true
@@ -302,6 +302,11 @@ function ubit_success(serial) {
               }
             }
           }
+        }
+        if (ubit.exhibit){
+
+          visitor.updateDocs(ubit.exhibit, remoteMicrobit);
+          
         }
       }
      /* serial.write('main screen turn on', function(err) {

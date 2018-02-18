@@ -101,8 +101,8 @@ exports.drop = (collection_name) => {
       if (err) throw err
       var database = db.db("quando")
       database.collection(collection_name).drop(function (err, del) {
-        if (err) throw err
-        if (del) console.log("Collection deleted");
+        if (err) console.log("collection" + collection_name +" does not exist")
+        if (del) console.log( collection_name+ " deleted");
         db.close();
         success()
       })
@@ -111,12 +111,12 @@ exports.drop = (collection_name) => {
 }
 
 
-exports.insert = (collection_name, doc, flag) => {
+exports.insert = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
       if (err) throw err
       var database = db.db("quando")
-      var document = { _id: doc, returned: flag }
+      var document = { _id: doc, exhibit: exhibitName }
       database.collection(collection_name).insertOne(document, function (err, res) {
         if (err) console.log("document already exists")
         console.log("1 document inserted")
@@ -154,13 +154,14 @@ exports.searchCreate = (collection_name) => {
   })
 }
 
-exports.search = (collection_name) => {
+exports.search = () => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
       if (err) throw err
       var database = db.db("quando")
       database.listCollections().toArray(function (err, collInfos) {
         if (err) throw err
+        //console.log(collInfos)
         console.log(collInfos)
         success()
       })
@@ -168,7 +169,7 @@ exports.search = (collection_name) => {
   })
 }
 
-exports.findInsert = (collection_name, doc) => {
+exports.findInsert = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
       if (err) throw err
@@ -176,12 +177,12 @@ exports.findInsert = (collection_name, doc) => {
       database.collection(collection_name).findOne({ _id: doc }, function (err, result) {
         if (err) {
           throw err
-        }  else if (result == null) {
-          exports.insert(collection_name, doc, false)
+        } else if (result == null) {
+          exports.insert(collection_name, doc, exhibitName)
           success(false)
         } else {
           console.log("Document already exists in collection")
-          exports.update(collection_name, doc, true)
+          exports.update(collection_name, doc, exhibitName)
           success(true)
         }
         db.close()
@@ -190,13 +191,13 @@ exports.findInsert = (collection_name, doc) => {
   })
 }
 
-exports.update = (collection_name, doc, flag) => {
+exports.update = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
       if (err) throw err
       var database = db.db("quando")
-      var prevDoc = { _id: doc, returned: false }
-      var newDoc = { _id: doc, returned: true }
+      var prevDoc = { _id: doc, exhibit: exhibitName }
+      var newDoc = { _id: doc, exhibit: exhibitName }
       database.collection(collection_name).updateOne(prevDoc, newDoc, function (err, res) {
         if (err) throw err
         console.log("1 document updated")
@@ -240,31 +241,39 @@ exports.deleteMany = (collection_name) => {
   })
 }
 
-/*
-exports.find = (collection_name, doc) => {
+exports.deleteOne = (collection_name, doc) => {
+  return new Promise((success, fail) => {
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      var document = { _id: doc }
+      database.collection(collection_name).deleteOne(document, function (err, obj) {
+        if (err) console.log("document doesn't exist")
+        console.log("1 document deleted")
+        db.close()
+      })
+    })
+  })
+}
+
+exports.updateDocs = (collection_name, serial) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
       if (err) throw err
       var database = db.db("quando")
       collection(collection_name).then((_collection) => {
-        database.collection(collection_name).findOne({ _id: doc }, function (err, result) {
+        database.collection(collection_name).findOne({ _id: serial }, function (err, result) {
           if (err) {
             throw err
-          }// else if (result == null) {
-           // console.log("collection empty")
-            // console.log(result)
-
-           if ((result != null) && (result.returned == true)) {
-           // console.log("visitor returned")
-          //  var returned = "B" + result._id
+          }
+          if (result != null) {
+            console.log("visitor ID already exists in:" + collection_name)
+            //  var returned = "B" + result._id
             success(true)
-          } else if ((result != null) && (result.returned == false)) {
-            // console.log("visitor first visit")
-           // var first = result._id
-            success(false)
           } else {
             console.log(result)
-            console.log("Document does not exist")
+            console.log("Document does not exist in:" + collection_name)
+            exports.insert(collection_name, serial, collection_name);
             success(false)
           }
           db.close()
@@ -273,5 +282,3 @@ exports.find = (collection_name, doc) => {
     })
   })
 }
-*/
-
