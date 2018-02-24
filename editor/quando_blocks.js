@@ -600,6 +600,36 @@
       }
     })
 
+    let Width = 'Width'
+    let Height = 'Height'
+    let WEBSITE = 'Website'
+    self.defineDisplay({
+      name: 'Open website',
+      interface: [
+        { name: WEBSITE,
+          title: '"',
+          text:'Type website URL here...' }, { title: '"' },
+          {
+            extras: [
+              { title: 'Width', name: Width, number: 700 }, { title: 'cm' },
+              { title: 'Height', name: Height, number: 500 }, { title: 'cm' }
+            ]
+          },
+      ],
+      javascript: (block) => {
+        websiteURL = quando_editor.getText(block, WEBSITE)
+        let extras = {}
+        let widthVal = quando_editor.getNumber(block, Width)
+        let heightVal = quando_editor.getNumber(block, Height)
+        if (websiteURL != "Type website URL here..."){
+        return  "window.open(" + "'http://" + websiteURL + "', 'Visitor Window'," + "'width=" + widthVal + ",height=" + heightVal + "')"
+        }else{
+          return 'alert("Please enter a valid URL into the Open Website block. " +' +"\n" + '"For example: www.google.co.uk");'
+          
+        }
+      }
+    })
+
 
   let VISITOR_PROXIMITY_MENU = 'Visitor proximity'
   self.defineVisitor({
@@ -688,35 +718,6 @@ let EXHIBIT_TO_MENU = ''
     }
   })*/
 
-  let Width = 'Width'
-  let Height = 'Height'
-  let WEBSITE = 'Website'
-  self.defineVisitor({
-    name: 'Open website',
-    interface: [
-      { name: WEBSITE,
-        title: '"',
-        text:'Type website URL here...' }, { title: '"' },
-        {
-          extras: [
-            { title: 'Width', name: Width, number: 700 }, { title: 'cm' },
-            { title: 'Height', name: Height, number: 500 }, { title: 'cm' }
-          ]
-        },
-    ],
-    javascript: (block) => {
-      websiteURL = quando_editor.getText(block, WEBSITE)
-      let extras = {}
-      let widthVal = quando_editor.getNumber(block, Width)
-      let heightVal = quando_editor.getNumber(block, Height)
-      if (websiteURL != "Type website URL here..."){
-      return  "window.open(" + "'http://" + websiteURL + "', 'Visitor Window'," + "'width=" + widthVal + ",height=" + heightVal + "')"
-      }else{
-        return 'alert("Please enter a valid URL into the Open Website block. " +' +"\n" + '"For example: www.google.co.uk");'
-        
-      }
-    }
-  })
 /*
   let ID_GREETING = 'Greeting'
   self.defineMedia({
