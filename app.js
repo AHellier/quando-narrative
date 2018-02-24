@@ -122,9 +122,26 @@ app.get('/script/id/:id', (req, res) => {
 
 app.delete('/script/id/:id', (req, res) => {
   let id = req.params.id
-  script.deleteOnId(id).then(
-    (doc) => { res.json({ 'success': true }) },
-    (err) => { res.json({ 'success': false, 'message': err }) })
+  let userid = req.session.user.id
+  script.deleteOnId(userid, id).then(
+        (doc) => { res.json({ 'success': true }) },
+        (err) => { res.json({ 'success': false, 'message': err }) })
+})
+
+app.delete('/script/name/:name', (req, res) => {
+  let name = encodeURI(req.params.name)
+  let userid = req.session.user.id
+  script.deleteAllOnName(userid, name).then(
+        (doc) => { res.json({ 'success': true }) },
+        (err) => { res.json({ 'success': false, 'message': err }) })
+})
+
+app.delete('/script/tidy/:tidy', (req, res) => {
+  let tidy = JSON.parse(req.params.tidy)
+  let userid = req.session.user.id
+  script.tidyOnIdName(userid, tidy.id, tidy.name).then(
+        (doc) => { res.json({ 'success': true }) },
+        (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.put('/script/deploy/:filename', (req, res) => {

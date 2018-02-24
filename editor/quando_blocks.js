@@ -750,30 +750,30 @@ let EXHIBIT_TO_MENU = ''
   })
 
   let WHEN_IDLE = 'When Idle for'
-  let ACTIVE_STATEMENT = 'ACTIVE_STATEMENT'
-  self.defineTime({
-    name: WHEN_IDLE,
-    next: false,
-    previous: false,
-    interface: [
-      { name: DURATION, title: '', number: '1' }, MENU_UNITS_MINS,
-      { statement: STATEMENT },
-      { row: 'Then When Active', statement: ACTIVE_STATEMENT }
-    ],
-    javascript: (block) => {
-      let seconds = quando_editor.getNumber(block, DURATION)
-      if (quando_editor.getMenu(block, MENU_UNITS_MINS.name) === 'Minutes') {
-        seconds *= 60
+    let ACTIVE_STATEMENT = 'ACTIVE_STATEMENT'
+    self.defineTime({
+      name: WHEN_IDLE,
+      next: false,
+      previous: false,
+      interface: [
+                { name: DURATION, title: '', number: '1' }, MENU_UNITS_MINS,
+                { statement: STATEMENT },
+                { row: 'Then When Active', statement: ACTIVE_STATEMENT }
+      ],
+      javascript: (block) => {
+        let seconds = quando_editor.getNumber(block, DURATION)
+        if (quando_editor.getMenu(block, MENU_UNITS_MINS.name) === 'Minutes') {
+          seconds *= 60
+        }
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let active_statement = quando_editor.getStatement(block, ACTIVE_STATEMENT)
+        let result = 'quando.idle(' +
+                    seconds +
+                    ', function() {\n' + statement + '}, function() {\n' +
+                    active_statement + '});\n'
+        return result
       }
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let active_statement = quando_editor.getStatement(block, ACTIVE_STATEMENT)
-      let result = 'quando.idle(' +
-        seconds +
-        ', function() {\n' + statement + '}, function() {\n' +
-        active_statement + '});\n'
-      return result
-    }
-  })
+    })
 
   self.defineTime({
     name: 'Check',
@@ -816,11 +816,9 @@ let EXHIBIT_TO_MENU = ''
   self.defineClient({
     name: CONTENT_POSITION,
     interface: [
-      {
-        menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
-        name: DIV_MENU, title: ''
-      },
-      { name: POSITION_SIZE, title: '', number: 0 }, { title: '%' },
+      { menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
+        name: DIV_MENU, title: '' },
+      { name: POSITION_SIZE, title: '', number: 0 }, {title: '%'},
       { menu: ['top', 'bottom', 'left', 'right'], name: DIRECTION_MENU, title: 'from' }
     ],
     javascript: (block) => {
