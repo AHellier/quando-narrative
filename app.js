@@ -26,6 +26,7 @@ var remoteMicrobit = 1
 var connectedMicroBit = 1
 let returningMicrobit = null
 let filename = null
+let exhibitsList = null
 
 let server = http.listen(process.env.PORT || 80, () => {
   let host = process.env.IP || server.address().address
@@ -167,7 +168,7 @@ app.post('/create_visitor', (req, res) => {
   var body = req.body
   console.log(body)
   if (body.email != '') {
-    visitor.save(body.email, body.password, body.firstName, remoteMicrobit, body.session).then((result) => {
+    visitor.save(body.email, body.password, body.firstName, remoteMicrobit, exhibitsList).then((result) => {
 
       console.log("Visitor successfully registered")
     }, (err) => {
@@ -186,9 +187,9 @@ function ubit_error(err) {
     reported = true
     console.log("Micro:Bit disconnected")
     if (filename != null) {
-      visitor.drop(filename)
-     // visitor.deleteMany(connectedMicroBit)
-    //  returningMicrobit = null
+      // visitor.drop(filename)
+      // visitor.deleteMany(connectedMicroBit)
+      //  returningMicrobit = null
       remoteMicrobit = 1
       connectedMicroBit = 1
       visitor.previousVisitor = null
@@ -209,77 +210,90 @@ function ubit_success(serial) {
   let lastRemoteMicrobit = null
   let checked = false
   let compared = false
+  let buttonCount = 0
 
   io.emit('ubit', { Connected: 'true' })
   serial.on('data', (data) => {
     try {
       let ubit = JSON.parse(data)
       if (ubit && io) {
-       console.log(data)
-      // console.log(ubit)
-      // serial.write("hello\n")
-    //   console.log(serial)
+        console.log(data)
+        // console.log(ubit)
+        // serial.write("hello\n")
+        //   console.log(serial)
         if (checked == true) {
           checked = false
           compared = true
         }
         if ((visitor.previousVisitor == true) && (compared == true)) {
           console.log("Returning visitor")
-          var visitorData = { previousVisitor: true };
-          io.emit("visitor", visitorData)
+          io.emit("visitor", { previousVisitor: 'true' })
+          io.emit("visitor", { state : 'entry' })
           visitor.previousVisitor = null
           compared = false
-          sleep(2000, serial)
+          sleep(serial)
         } else if ((visitor.previousVisitor == false) && (compared == true)) {
           console.log("Visiting for the first time")
-          var visitorData = { previousVisitor: false };
-          io.emit("visitor", visitorData)
+          io.emit("visitor", { previousVisitor: 'false' })
+          io.emit("visitor", { state : 'entry' })
           visitor.previousVisitor = null
           compared = false
-     /*     var stream = fs.createWriteStream("D:/test.txt");
-          stream.once('open', function(fd) {
-            stream.write(filename + "\r\n");
-            stream.end();
-          });*/
+          /*     var stream = fs.createWriteStream("D:/test.txt");
+               stream.once('open', function(fd) {
+                 stream.write(filename + "\r\n");
+                 stream.end();
+               });*/
         }
-
-
         if (ubit.Paired) {
           console.log("Micro:Bit Paired")
-         // io.emit('ubit', { 'proximity': ubit.Paired })
+          // io.emit('ubit', { 'proximity': ubit.Paired })
         }
         if (ubit.button_a) {
           io.emit('ubit', { button: 'a' })
-          for (var i = 0; i < fileNames.length; i++){
-            //console.log(fileNames[i])
-            //visitor.deleteOne(fileNames[i], remoteMicrobit)
-            visitor.drop(fileNames[i])
-        }
+          buttonCount += 1
+          console.log(buttonCount)
+          if (buttonCount == 3) {
+            for (var i = 0; i < fileNames.length; i++) {
+              if (remoteMicrobit != 1) {
+                console.log(fileNames[i])
+                visitor.deleteOne(fileNames[i], remoteMicrobit)
+                buttonCount = 0
+                //visitor.drop(fileNames[i])
+              }
+            }
+          }
         }
         if (ubit.button_b) {
           io.emit('ubit', { button: 'b' })
           console.log(returningMicrobit)
+          buttonCount = 0
         }
         if (ubit.ir) {
           io.emit('ubit', { ir: true })
+          buttonCount = 0
         }
         if (ubit.mag_x) {
           io.emit('ubit', { 'mag_x': ubit.mag_x, 'mag_y': ubit.mag_y })
+          buttonCount = 0
           // console.log(ubit.mag_x, ubit.mag_y)
         }
         if (ubit.orientation) {
           io.emit('ubit', { 'orientation': ubit.orientation })
+          buttonCount = 0
         }
         if (ubit.heading) {
           io.emit('ubit', { 'heading': ubit.heading })
+          buttonCount = 0
         }
         if (ubit.roll_pitch) {
           let roll = ubit.roll_pitch[0]
           let pitch = ubit.roll_pitch[1]
           io.emit('ubit', { 'roll': roll, 'pitch': pitch })
+          buttonCount = 0
         }
         if (ubit.proximity) {
           io.emit('ubit', { 'proximity': ubit.proximity })
+          
         }
         if (ubit.serial) {
           io.emit('ubit', { 'serial': ubit.serial })
@@ -292,29 +306,26 @@ function ubit_success(serial) {
             }
             else if (microbit_id.charAt(0) == "R") {
               remoteMicrobit = microbit_id
-            if (remoteMicrobit != lastRemoteMicrobit) {
-             //   if (connectedMicroBit != 1) {
-                  visitor.findInsert(filename, remoteMicrobit, filename)
-                  lastRemoteMicrobit = remoteMicrobit
-             //     returningMicrobit = "B" + remoteMicrobit
-                  checked = true
-             //   }
+              if (remoteMicrobit != lastRemoteMicrobit) {
+                visitor.findInsert(filename, remoteMicrobit, filename)
+                lastRemoteMicrobit = remoteMicrobit
+                checked = true
               }
             }
           }
         }
-        if (ubit.exhibit){
-
-          visitor.updateDocs(ubit.exhibit, remoteMicrobit);
-          
+        if (ubit.exhibit) {
+          visitor.updateDocs(ubit.exhibit, remoteMicrobit)
+          exhibitsList += ubit.exhibit
+          console.log(ubit.exhibit)
+        }
+        if (ubit.visitor) {
+          io.emit('ubit', { 'visitor': ubit.visitor })
+          io.emit("visitor", { state : 'exit' })
+          lastRemoteMicrobit = 1
+          exhibitsList = null
         }
       }
-     /* serial.write('main screen turn on', function(err) {
-        if (err) {
-          return console.log('Error on write: ', err.message);
-        }
-        console.log('message written');
-      });*/
     } catch (err) {
       console.log(err + ':' + data)
       connected = false
@@ -402,7 +413,7 @@ app.get('/client/js/:filename', (req, res) => {
   filename = req.params.filename
   console.log(filename)
   if (filename != null){
-  visitor.searchCreate(filename)
+    visitor.searchCreate(filename)
   }
   fs.readFile('./client/client.htm', 'utf8', (err, data) => {
     if (err) {
@@ -430,24 +441,24 @@ app.get('/client/js', (req, res) => {
   })
 })
 
-function sleep(miliseconds, serial) {
-  var currentTime = new Date().getTime();
+function sleep(serial) {
+ // var currentTime = new Date().getTime();
   var message = filename
   var write = false
-  while (currentTime + miliseconds >= new Date().getTime()) {
-    if (write == false){
+ // while (currentTime + miliseconds >= new Date().getTime()) {
+    if (write == false) {
       //serial.write("hello\n")
-      serial.write(message, function(err) {
+      serial.write(message, function (err) {
         if (err) {
           return console.log('Error on write: ', err.message);
         }
         console.log('message written:' + message);
-       //  console.log(serial)
+        //  console.log(serial)
       });
       write = true;
     }
   }
-}
+//}
 
 app.use('/client', express.static(path.join(client_dir, 'index.html')))
 app.get('/visitor', function (req, res) {

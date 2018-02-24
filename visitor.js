@@ -34,7 +34,7 @@ exports.insert = (collectionName, doc, exhibitName) => {
 exports.findInsert = (collectionName, doc, exhibitName) => {
   return new Promise((success, fail) => {
     db.findInsert(collectionName, doc, exhibitName).then(function (result) {
-     // console.log(result)
+      console.log(result)
       exports.previousVisitor = result
     })
   })
@@ -43,13 +43,7 @@ exports.findInsert = (collectionName, doc, exhibitName) => {
 exports.updateDocs = (collectionName, serial) => {
   return new Promise((success, fail) => {
     db.updateDocs(collectionName, serial).then(function (result) {
-      // if(success){
-    // console.log(result)
-     // if (serialId != null) {
-     //   exports.serialId = result
         success()
-   //   }
-      //  }
     })
   })
 }

@@ -57,6 +57,7 @@ def proximity():
     highSignal()
 
 def gesture():
+    buttonCount = 0
     proxCount = 3
     last_gesture = ""
     finalValue = ""
@@ -95,12 +96,20 @@ def gesture():
         msg_b = COMMS.BUTTON_B[0]+':'+COMMS.BUTTON_B[1] + serial
         if button_a.was_pressed():
             msg = msg_a
+            buttonCount += 1
             if button_b.is_pressed():
                 msg += msg_b
+                buttonCount = 0
         if button_b.was_pressed():
             msg = msg_b
             if button_a.is_pressed():
                 msg += msg_a
+                buttonCount += 1
+        elif buttonCount == 3: 
+                with open(EXHIBITS_FILE, 'w') as file:
+                   file.write("")  
+                   print("deleting exhibit records")
+                   buttonCount = 0
         gest = accelerometer.current_gesture()
         if gest == last_gesture:
             ticks += 1
@@ -115,16 +124,22 @@ def gesture():
             comms = False
             if gest == 'face up':
                 comms = COMMS.FACE_UP
+                buttonCount = 0
             elif gest == 'face down':
                 comms = COMMS.FACE_DOWN
+                buttonCount = 0
             elif gest == 'up':
                 comms = COMMS.UP
+                buttonCount = 0
             elif gest == 'down':
                 comms = COMMS.DOWN
+                buttonCount = 0
             elif gest == 'left':
                 comms = COMMS.LEFT
+                buttonCount = 0
             elif gest == 'right':
                 comms = COMMS.RIGHT
+                buttonCount = 0
             if comms != False:
                 display.show(comms[0])
                 msg += comms[0]+':'+comms[1] + serial

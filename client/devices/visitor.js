@@ -1,5 +1,8 @@
 (function () {
   var quando = this['quando']
+  if (!quando) {
+  //  alert('Fatal Error: ubit must be included after quando_browser')
+  }
 
   var self = quando.visitor = {}
   self.last_gesture = ''
@@ -17,13 +20,30 @@
     quando.add_handler('visitorFirst', callback, destruct)
   }
 
-  quando.socket.on("visitor", function (visitorData) {
+  self.visitorEntry = function (callback, destruct = true, website) {
+    quando.add_handler('visitorEntry', callback, destruct)
+  }
 
-    if (visitorData.previousVisitor == true) {
+  self.visitorExit = function (callback, destruct = true, website) {
+    quando.add_handler('visitorExit', callback, destruct)
+  }
+
+  quando.socket.on("visitor", function (visitorData) {
+    if (visitorData.previousVisitor == 'true') {
       dispatch_gesture('visitorReturn')
-    } else if (visitorData.previousVisitor == false) {
+      self.last_gesture = ''
+    } else if (visitorData.previousVisitor == 'false') {
       dispatch_gesture('visitorFirst')
+      self.last_gesture = ''
     }
+    quando.idle_reset()
+    if (visitorData.state == 'entry'){
+      dispatch_gesture('visitorEntry')
+    }else if (visitorData.state == 'exit'){
+      dispatch_gesture('visitorExit')
+      self.last_gesture = ''
+    }
+    quando.idle_reset()
   })
 })()
 

@@ -71,6 +71,10 @@
     quando.add_handler('ubitSerial', callback, destruct)
   }
 
+  self.ubitVisitor = function (callback, destruct = true) {
+    quando.add_handler('ubitVisitor', callback, destruct)
+  }
+
   function _handleAngle(event, callback, extras, destruct = true) {
     var scale = quando.new_angle_scaler(extras.mid_angle, extras.plus_minus, extras.inverted)
     quando.add_scaled_handler(event, callback, scale, destruct)
@@ -171,10 +175,15 @@
           lastProximity = 'far'
         }
       }
-    }/* else if (data.serial) {
+    } else if (data.serial) {
       if (data.serial != lastSerial) {
         dispatch_gesture('ubitSerial')
       }
-    } */
+    }else if (data.visitor) {
+      if (data.visitor == 'false'){
+        dispatch_gesture('ubitVisitor')
+        lastProximity = ''
+      } 
+    }
   })
 })()

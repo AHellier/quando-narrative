@@ -11,8 +11,8 @@ def get_serial_number(type=hex):
     @micropython.asm_thumb
     def reg_read(r0):
         ldr(r0, [r0, 0])
-    return type(reg_read(NRF_FICR_BASE + (DEVICEID_INDEX*4)))  
-
+    return type(reg_read(NRF_FICR_BASE + (DEVICEID_INDEX*4))) 
+     
 # The radio won't work unless it's switched on.
 def radio_on():
     # set the channel
@@ -24,6 +24,7 @@ def proxy():
     sleeps = 0
     closeCount = 0
     farCount = 0
+    incomingCount = 0
     
     while True:
         try:
@@ -36,10 +37,15 @@ def proxy():
                 sendValue = ":" + 'exhibit' + ":" + str(finalValue)   
                 radio.send(sendValue)
             elif incoming == None:
-                if sleeps == 500:
+                incomingCount += 1
+                if incomingCount == 25000: #Emit no device every 10 seconds (30000) if no incoming data
+                    print('{"visitor":"false"}')
+                    incomingCount = 0
+                elif sleeps == 500:
                     display.clear()
                 sleeps += 1   
             else:
+                    incomingCount = 0
                     messages = incoming.split('\n')
                     messages.pop() # drop the empty last one
                     #print(incoming)
@@ -97,6 +103,7 @@ def proxy():
 #main
 radio_on()
 print('{"started":true}')
+print('{"visitor":"false"}')
 serial_num = ("C" + str(get_serial_number()))
 serial = '{' + '"' + 'serial":' + '"' + serial_num +'"}'
 print (serial)
