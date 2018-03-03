@@ -90,7 +90,8 @@ def gesture():
             else: 
                 with open(EXHIBITS_FILE, 'w') as file:
                       file.write(incomingData)  
-                      print("exhibit recorded for the first time")  
+                      print("exhibit recorded for the first time...")  
+                      print(incomingData)
         msg = ""
         msg_a = COMMS.BUTTON_A[0]+':'+COMMS.BUTTON_A[1] + serial
         msg_b = COMMS.BUTTON_B[0]+':'+COMMS.BUTTON_B[1] + serial
@@ -106,10 +107,13 @@ def gesture():
                 msg += msg_a
                 buttonCount += 1
         elif buttonCount == 3: 
-                with open(EXHIBITS_FILE, 'w') as file:
-                   file.write("")  
-                   print("deleting exhibit records")
-                   buttonCount = 0
+                if os.listdir() != []:
+                    with open(EXHIBITS_FILE, 'w') as file:
+                       os.remove(EXHIBITS_FILE)
+                       print("deleting exhibit records")
+                       buttonCount = 0
+                else: 
+                    buttonCount = 0
         gest = accelerometer.current_gesture()
         if gest == last_gesture:
             ticks += 1
@@ -145,7 +149,7 @@ def gesture():
                 msg += comms[0]+':'+comms[1] + serial
         if msg != "":   
             radio.send(msg)
-            print(msg)
+          #  print(msg)
     return # never does
 
 #Main program
@@ -154,5 +158,4 @@ radio_on()
 gesture()
 
     
-
 

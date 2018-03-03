@@ -101,8 +101,8 @@ exports.drop = (collection_name) => {
       if (err) throw err
       var database = db.db("quando")
       database.collection(collection_name).drop(function (err, del) {
-        if (err) console.log("collection" + collection_name +" does not exist")
-        if (del) console.log( collection_name+ " deleted");
+        if (err) console.log("collection" + collection_name + " does not exist")
+        if (del) console.log(collection_name + " deleted");
         db.close();
         success()
       })
@@ -269,7 +269,7 @@ exports.updateDocs = (collection_name, serial) => {
           if (result != null) {
             console.log("visitor ID already exists in:" + collection_name)
             //  var returned = "B" + result._id
-            success(true)
+            success(collection_name)
           } else {
             console.log(result)
             console.log("Document does not exist in:" + collection_name)
@@ -282,3 +282,74 @@ exports.updateDocs = (collection_name, serial) => {
     })
   })
 }
+
+exports.find = (collection_name, serial) => {
+  return new Promise((success, fail) => {
+  mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+    if (err) throw err;
+    var database = db.db("quando")
+    //Find the first document in the customers collection:
+    collection(collection_name).then((_collection) => {
+      database.collection(collection_name).findOne({ _id: serial }, function (err, result) {
+        if (err) {
+          throw err
+        }
+        if (result != null) {
+          success(collection_name)
+        } else {
+          success(false)
+        }
+        db.close()
+      })
+    }, fail)
+  })
+  })
+}
+
+exports.findName = (serial) => {
+  return new Promise((success, fail) => {
+  mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+    if (err) throw err;
+    var database = db.db("quando")
+    //Find the first document in the customers collection:
+    collection("visitor").then((_collection) => {
+      database.collection("visitor").findOne({ microbit: serial }, function (err, result) {
+        if (err) {
+          throw err
+        }
+        if (result != null) {
+          success(result.firstName)
+        } else {
+          success(false)
+        }
+        db.close()
+      })
+    }, fail)
+  })
+  })
+}
+
+exports.login = (username, password) => {
+  return new Promise((success, fail) => {
+  mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+    if (err) throw err;
+    var database = db.db("quando")
+    //Find the first document in the customers collection:
+    collection("visitor").then((_collection) => {
+      database.collection("visitor").findOne({ _id: username, password: password }, function (err, result) {
+        if (err) {
+          throw err
+        }
+        if (result != null) {
+          var finalResult = result.firstName + "-" + result.visited_exhibits
+          success(finalResult)
+        } else {
+          success(false)
+        }
+        db.close()
+      })
+    }, fail)
+  })
+  })
+}
+

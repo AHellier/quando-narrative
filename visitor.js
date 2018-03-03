@@ -2,13 +2,19 @@
 const db = require('./db')
 const COLLECTION = 'visitor'
 const serialport = require('serialport')
+//let serial
 
-let serial
-
+exports.login = (username, password) => {
+  return new Promise((success, fail) => {
+    db.login(username, password).then(function (result) {
+        success(result)
+    })
+  })
+}
 
 exports.save = (userid, password, firstName, microbitId, session) => {
   return new Promise((success, fail) => {
-    let doc = { _id: userid, password: password, firstName: firstName, microbit: microbitId, session_route: session }
+    let doc = { _id: userid, password: password, firstName: firstName, microbit: microbitId, visited_exhibits: session}
     db.save(COLLECTION, doc).then(success, fail)
   })
 }
@@ -43,7 +49,7 @@ exports.findInsert = (collectionName, doc, exhibitName) => {
 exports.updateDocs = (collectionName, serial) => {
   return new Promise((success, fail) => {
     db.updateDocs(collectionName, serial).then(function (result) {
-        success()
+      success(result)
     })
   })
 }
@@ -77,4 +83,31 @@ exports.deleteOne = (collectionName, doc) => {
     db.deleteOne(collectionName, doc).then(success, fail)
   })
 }
+
+exports.find = (collectionName, doc) => {
+  return new Promise((success, fail) => {
+    db.find(collectionName, doc).then(function (result) {
+      if (result != false) {
+      //  console.log("result " + result)
+        success(result)
+      } else {
+        success(result)
+      }
+    })
+  })
+}
+
+exports.findName = (doc) => {
+  return new Promise((success, fail) => {
+    db.findName(doc).then(function (result) {
+      if (result != false) {
+      //  console.log("result " + result)
+        success(result)
+      } else {
+        success(result)
+      }
+    })
+  })
+}
+
 

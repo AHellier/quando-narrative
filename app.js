@@ -26,7 +26,8 @@ var remoteMicrobit = 1
 var connectedMicroBit = 1
 let returningMicrobit = null
 let filename = null
-let exhibitsList = null
+let exhibitsList = ""
+let exhibits = []
 
 let server = http.listen(process.env.PORT || 80, () => {
   let host = process.env.IP || server.address().address
@@ -96,6 +97,34 @@ app.post('/login', (req, res) => {
   }
 })
 
+app.post('/loginVisitor', (req, res) => {
+  let body = req.body
+  console.log(body.visitorid)
+  console.log(body.visitorpassword)
+  if (body.visitorid && body.visitorpassword) {
+    visitor.login(body.visitorid, body.visitorpassword).then((result) => {
+      if (result != false) {
+        req.session.user = result
+        console.log(result)
+        var splitResult = result.split("-")
+        var name = splitResult[0]
+        var visitedExhibits = splitResult.slice(1)
+        var finalExhibits = String(visitedExhibits).replace(',', '\n')
+        // console.log(name)
+        // console.log(finalExhibits)
+        res.json({
+          'success': true, 'message': "Welcome back " + name + '!' + "\n\nHere is a list of exhibits you visited last time: \n" + finalExhibits
+            + '\n\nWe hope you enjoy your visit!'
+        })
+      } else {
+        res.json({ 'success': false, 'message': 'Please enter a valid username (email address) and password' })
+      }
+    }, (err) => {
+      res.json({ 'success': false, 'message': 'Login Failed, please try again' + err })
+    })
+  }
+})
+
 app.delete('/login', (req, res) => {
   delete req.session.user
   res.json({ 'success': true, 'message': 'Logged Out' })
@@ -124,24 +153,24 @@ app.delete('/script/id/:id', (req, res) => {
   let id = req.params.id
   let userid = req.session.user.id
   script.deleteOnId(userid, id).then(
-        (doc) => { res.json({ 'success': true }) },
-        (err) => { res.json({ 'success': false, 'message': err }) })
+    (doc) => { res.json({ 'success': true }) },
+    (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.delete('/script/name/:name', (req, res) => {
   let name = encodeURI(req.params.name)
   let userid = req.session.user.id
   script.deleteAllOnName(userid, name).then(
-        (doc) => { res.json({ 'success': true }) },
-        (err) => { res.json({ 'success': false, 'message': err }) })
+    (doc) => { res.json({ 'success': true }) },
+    (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.delete('/script/tidy/:tidy', (req, res) => {
   let tidy = JSON.parse(req.params.tidy)
   let userid = req.session.user.id
   script.tidyOnIdName(userid, tidy.id, tidy.name).then(
-        (doc) => { res.json({ 'success': true }) },
-        (err) => { res.json({ 'success': false, 'message': err }) })
+    (doc) => { res.json({ 'success': true }) },
+    (err) => { res.json({ 'success': false, 'message': err }) })
 })
 
 app.put('/script/deploy/:filename', (req, res) => {
@@ -184,8 +213,13 @@ app.post('/create_user', (req, res) => {
 app.post('/create_visitor', (req, res) => {
   var body = req.body
   console.log(body)
+  console.log(body.firstName)
+  console.log(exhibits)
+  for (var j = 0; j < exhibits.length; j++) {
+    console.log(exhibits[j])
+  }
   if (body.email != '') {
-    visitor.save(body.email, body.password, body.firstName, remoteMicrobit, exhibitsList).then((result) => {
+    visitor.save(body.email, body.password, body.firstName, remoteMicrobit, exhibits).then((result) => {
 
       console.log("Visitor successfully registered")
     }, (err) => {
@@ -245,21 +279,16 @@ function ubit_success(serial) {
         if ((visitor.previousVisitor == true) && (compared == true)) {
           console.log("Returning visitor")
           io.emit("visitor", { previousVisitor: 'true' })
-          io.emit("visitor", { state : 'entry' })
+          io.emit("visitor", { state: 'entry' })
           visitor.previousVisitor = null
           compared = false
           sleep(serial)
         } else if ((visitor.previousVisitor == false) && (compared == true)) {
           console.log("Visiting for the first time")
           io.emit("visitor", { previousVisitor: 'false' })
-          io.emit("visitor", { state : 'entry' })
+          io.emit("visitor", { state: 'entry' })
           visitor.previousVisitor = null
           compared = false
-          /*     var stream = fs.createWriteStream("D:/test.txt");
-               stream.once('open', function(fd) {
-                 stream.write(filename + "\r\n");
-                 stream.end();
-               });*/
         }
         if (ubit.Paired) {
           console.log("Micro:Bit Paired")
@@ -269,20 +298,20 @@ function ubit_success(serial) {
           io.emit('ubit', { button: 'a' })
           buttonCount += 1
           console.log(buttonCount)
-          if (buttonCount == 3) {
+          if (buttonCount == 2) {
             for (var i = 0; i < fileNames.length; i++) {
               if (remoteMicrobit != 1) {
                 console.log(fileNames[i])
                 visitor.deleteOne(fileNames[i], remoteMicrobit)
                 buttonCount = 0
-                //visitor.drop(fileNames[i])
+                //  visitor.drop(fileNames[i])
               }
             }
           }
         }
         if (ubit.button_b) {
           io.emit('ubit', { button: 'b' })
-          console.log(returningMicrobit)
+          // console.log(returningMicrobit)
           buttonCount = 0
         }
         if (ubit.ir) {
@@ -310,7 +339,7 @@ function ubit_success(serial) {
         }
         if (ubit.proximity) {
           io.emit('ubit', { 'proximity': ubit.proximity })
-          
+
         }
         if (ubit.serial) {
           io.emit('ubit', { 'serial': ubit.serial })
@@ -323,8 +352,55 @@ function ubit_success(serial) {
             }
             else if (microbit_id.charAt(0) == "R") {
               remoteMicrobit = microbit_id
+              io.emit('visitor', { 'identity': 1 })
               if (remoteMicrobit != lastRemoteMicrobit) {
                 visitor.findInsert(filename, remoteMicrobit, filename)
+                for (var i = 0; i < fileNames.length; i++) {
+                  visitor.find(fileNames[i], remoteMicrobit)
+                  visitor.find(fileNames[i], remoteMicrobit).then(result => {
+                    if (result != false) {
+                      console.log(result)
+                      // console.log('{exhibit' + ':' + '"'+result+'"}')
+                      io.emit('visitor', { 'exhibit': '"' + result + '"' })
+                      exhibitsList += result + ","
+                      exhibits = exhibitsList.split(",")
+                    }
+                  })
+                }
+                visitor.findName(remoteMicrobit)
+                visitor.findName(remoteMicrobit).then(result => {
+                  if (result != false) {
+                    let name = result
+                    console.log("name:", name)
+                  }
+                })
+                lastRemoteMicrobit = remoteMicrobit
+                checked = true
+              }
+            } else if (microbit_id.charAt(0) == "T") {
+              remoteMicrobit = microbit_id
+              io.emit('visitor', { 'identity': 2 })
+              if (remoteMicrobit != lastRemoteMicrobit) {
+                visitor.findInsert(filename, remoteMicrobit, filename)
+                for (var i = 0; i < fileNames.length; i++) {
+                  visitor.find(fileNames[i], remoteMicrobit)
+                  visitor.find(fileNames[i], remoteMicrobit).then(result => {
+                    if (result != false) {
+                      console.log(result)
+                      // console.log('{exhibit' + ':' + '"'+result+'"}')
+                      io.emit('visitor', { 'exhibit': '"' + result + '"' })
+                      exhibitsList += result + ","
+                      exhibits = exhibitsList.split(",")
+                    }
+                  })
+                }
+                visitor.findName(remoteMicrobit)
+                visitor.findName(remoteMicrobit).then(result => {
+                  if (result != false) {
+                    let name = result
+                    console.log("name:", name)
+                  }
+                })
                 lastRemoteMicrobit = remoteMicrobit
                 checked = true
               }
@@ -333,14 +409,12 @@ function ubit_success(serial) {
         }
         if (ubit.exhibit) {
           visitor.updateDocs(ubit.exhibit, remoteMicrobit)
-          exhibitsList += ubit.exhibit
-          console.log(ubit.exhibit)
         }
         if (ubit.visitor) {
           io.emit('ubit', { 'visitor': ubit.visitor })
-          io.emit("visitor", { state : 'exit' })
+          io.emit("visitor", { state: 'exit' })
           lastRemoteMicrobit = 1
-          exhibitsList = null
+          exhibitsList = ""
         }
       }
     } catch (err) {
@@ -429,7 +503,7 @@ app.use('/client/deployed_js', express.static(path.join(client_dir, 'deployed_js
 app.get('/client/js/:filename', (req, res) => {
   filename = req.params.filename
   console.log(filename)
-  if (filename != null){
+  if (filename != null) {
     visitor.searchCreate(filename)
   }
   fs.readFile('./client/client.htm', 'utf8', (err, data) => {
@@ -459,25 +533,29 @@ app.get('/client/js', (req, res) => {
 })
 
 function sleep(serial) {
- // var currentTime = new Date().getTime();
+  // var currentTime = new Date().getTime();
   var message = filename
   var write = false
- // while (currentTime + miliseconds >= new Date().getTime()) {
-    if (write == false) {
-      //serial.write("hello\n")
-      serial.write(message, function (err) {
-        if (err) {
-          return console.log('Error on write: ', err.message);
-        }
-        console.log('message written:' + message);
-        //  console.log(serial)
-      });
-      write = true;
-    }
+  // while (currentTime + miliseconds >= new Date().getTime()) {
+  if (write == false) {
+    //serial.write("hello\n")
+    serial.write(message, function (err) {
+      if (err) {
+        return console.log('Error on write: ', err.message);
+      }
+      console.log('message written:' + message);
+      //  console.log(serial)
+    });
+    write = true;
   }
+}
 //}
 
 app.use('/client', express.static(path.join(client_dir, 'index.html')))
 app.get('/visitor', function (req, res) {
   res.sendFile(path.join(__dirname + '/client/visitor.html'));
+});
+app.use('/client', express.static(path.join(client_dir, 'index.html')))
+app.get('/visitorLogin', function (req, res) {
+  res.sendFile(path.join(__dirname + '/client/visitorLogin.html'));
 });

@@ -316,7 +316,7 @@
           }
         } else {
           alert('Failed to find server files')
-          $('#file_modal').modal('hide')
+           $('#file_modal').modal('hide')
         }
       },
       error: () => {

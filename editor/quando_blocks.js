@@ -18,6 +18,7 @@
   }
   const ICON_PRODUCE_VALUE = '\u26A1' // \uD83D\uDD33'
   const ICON_CONSUME_VALUE = '\u26A1' // \uD83D\uDD32'
+  var exhibitsList = []
 
   let ajax_get = (url, callback) => {
     let xhr = new XMLHttpRequest()
@@ -28,6 +29,21 @@
     xhr.send(null)
   }
 
+  var getJSON = function (url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function () {
+      var status = xhr.status;
+      if (status === 200) {
+        callback(null, xhr.response);
+      } else {
+        callback(status, xhr.response);
+      }
+    };
+    xhr.send();
+  };
+  
   function _defineBlock(json, category, colour) {
     json.category = category
     if (!quando_editor.exists(json.colour)) {
@@ -606,46 +622,122 @@
     self.defineDisplay({
       name: 'Open website',
       interface: [
-        { name: WEBSITE,
+        {
+          name: WEBSITE,
           title: '"',
-          text:'Type website URL here...' }, { title: '"' },
-          {
-            extras: [
-              { title: 'Width', name: Width, number: 700 }, { title: 'cm' },
-              { title: 'Height', name: Height, number: 500 }, { title: 'cm' }
-            ]
-          },
+          text: 'Type website URL here...'
+        }, { title: '"' },
+        {
+          extras: [
+            { title: 'Width', name: Width, number: 700 }, { title: 'cm' },
+            { title: 'Height', name: Height, number: 500 }, { title: 'cm' }
+          ]
+        },
       ],
       javascript: (block) => {
         websiteURL = quando_editor.getText(block, WEBSITE)
         let extras = {}
         let widthVal = quando_editor.getNumber(block, Width)
         let heightVal = quando_editor.getNumber(block, Height)
-        if (websiteURL != "Type website URL here..."){
-        return  "window.open(" + "'http://" + websiteURL + "', 'Visitor Window'," + "'width=" + widthVal + ",height=" + heightVal + "')"
-        }else{
-          return 'alert("Please enter a valid URL into the Open Website block. " +' +"\n" + '"For example: www.google.co.uk");'
-          
+        if (websiteURL != "Type website URL here...") {
+          return "window.open(" + "'http://" + websiteURL + "', 'Visitor Window'," + "'width=" + widthVal + ",height=" + heightVal + "')"
+        } else {
+          return 'alert("Please enter a valid URL into the Open Website block. " +' + "\n" + '"For example: www.google.co.uk");'
+
         }
       }
     })
 
 
-  let VISITOR_PROXIMITY_MENU = 'Visitor proximity'
-  self.defineVisitor({
-    name: 'When visitor',
-    interface: [
-      {
-        menu: [['is close to the exhibit', 'ubitClose'],
-        ['is far away from the exhibit', 'ubitFar'], ['has left the exhibit', 'ubitVisitor']],
-        name: VISITOR_PROXIMITY_MENU, title: ''
+    let VISITOR_PROXIMITY_MENU = 'Visitor proximity'
+    self.defineVisitor({
+      name: 'When visitor',
+      interface: [
+        {
+          menu: [['is close to the exhibit', 'ubitClose'],
+          ['is far away from the exhibit', 'ubitFar'], ['has left the exhibit', 'ubitVisitor']],
+          name: VISITOR_PROXIMITY_MENU, title: ''
+        },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, VISITOR_PROXIMITY_MENU)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = 'quando.ubit.' + fn + '(' +
+          'function() {\n' +
+          statement +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
+    let VISITOR_IDENTITY_MENU = 'Visitor Identity'
+    self.defineVisitor({
+      name: 'Visitor',
+      interface: [
+        {
+          menu: [['Identity 1', 'visitorIdentity1'],
+          ['Identity 2', 'visitorIdentity2']],
+          name: VISITOR_IDENTITY_MENU, title: ''
+        },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, VISITOR_IDENTITY_MENU)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = 'quando.visitor.' + fn + '(' +
+          'function() {\n' +
+          statement +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
+
+  
+    getJSON('http://127.0.0.1/client/js/',
+      function (err, data) {
+        if (err != null) {
+          alert('Something went wrong: ' + err);
+        } else {
+          //  alert(data.files);
+          for (var i = 0; i < data.files.length; i++) {
+            exhibitsList[i] = data.files[i] + '\n';
+          }
+        }
+      });
+
+   // Build the drop down list of deployed js files (exhibit names)
+   let _exhibit_menu = () => {
+    let choices = [['-----', 0]]
+        for (var i = 0; i < exhibitsList.length; i++) {
+        choices.push([String(exhibitsList[i])])
+        }
+    //  }
+    return choices
+    }
+
+    let EXHIBIT_TO_MENU = ''
+    let SHOW_EXHIBIT_LIST = 'When Visitor has viewed'
+    let VISITOR_EXHIBIT_MENU = 'Visitor Exhibit'
+    self.defineVisitor({
+      name: SHOW_EXHIBIT_LIST,
+      interface: [{
+        menu: _exhibit_menu,
+        name: VISITOR_EXHIBIT_MENU, title: ''
       },
+      { title: 'before' },
       { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let fn = quando_editor.getMenu(block, VISITOR_PROXIMITY_MENU)
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let result = 'quando.ubit.' + fn + '(' +
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, VISITOR_EXHIBIT_MENU)
+        exhibit = JSON.stringify(fn)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = 'quando.visitor.visitorExhibit(' +
         'function() {\n' +
         statement +
         '}' +
@@ -653,113 +745,78 @@
         ');\n'
       return result
     }
-  })
+    })
 
-  /*
-  function onload() {
-            var list = document.getElementById("list_js");
-            var result = '';
-            for(var i=0; i<response.files.length; i++) {
-                result +=  response.files[i] + '\n';
-            }
-            return result;
-        }*/
-        
-
-let EXHIBIT_TO_MENU = ''
-  let SHOW_EXHIBIT_LIST = 'When Visitor has viewed'
-  let VISITOR_EXHIBIT_MENU = 'Visitor Exhibit'
-  self.defineVisitor({
-    name: SHOW_EXHIBIT_LIST,
-    interface: [{
-      name: EXHIBIT_TO_MENU,
-      title: '',
-      menu: ['' , '']
-    },
-      {title:'before'} 
-    ],
-    javascript: (block) => {
-      let menuid = quando_editor.getMenu(block, EXHIBIT_TO_MENU)
-      // find when block on id, then get it's title
-      let whenblock = Blockly.mainWorkspace.getBlockById(menuid)
-      let title = quando_editor.getText(whenblock, 'title')
-      let result = `quando.addLabel("${menuid}", "${title}");\n`
-      return result
-    }
-  })
-
-  let VISITOR_STATE_MENU = 'Visitor State'
-  self.defineVisitor({
-    name: 'Open Visitor Form upon',
+    let VISITOR_STATE_MENU = 'Visitor State'
+    self.defineVisitor({
+      name: 'Open Visitor Form upon',
       interface: [
         {
           menu: [['Entry', 'visitorEntry'],
-          ['Exit', 'visitorExit']],
+          ['exit', 'visitorExit']],
           name: VISITOR_STATE_MENU, title: ''
         },
       ],
       javascript: (block) => {
         let fn = quando_editor.getMenu(block, VISITOR_STATE_MENU)
         let result = 'quando.visitor.' + fn + '(' +
-        'function() {\n' + "window.open('http://127.0.0.1/visitor/', 'Visitor Window', 'width=700,height=500')" +
-        '}' +
-        _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-        ');\n'
-      return result
+          'function() {\n' + "window.open('http://127.0.0.1/visitor/', 'Visitor Window', 'width=700,height=500')" +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
       }
     })
-/*
-    name: 'Open Visitor Form',
-    interface: [{ name }],
-    javascript: (block) => {
-      popupWindow = window.open('http://127.0.0.1/visitor/', 'name', 'width=700,height=500')
-      let result = "popupWindow.focus()"
-      return 'quando.text("' + result + '");\n'
-    }
-  })*/
+    /*
+        name: 'Open Visitor Form',
+        interface: [{ name }],
+        javascript: (block) => {
+          popupWindow = window.open('http://127.0.0.1/visitor/', 'name', 'width=700,height=500')
+          let result = "popupWindow.focus()"
+          return 'quando.text("' + result + '");\n'
+        }
+      })*/
 
-/*
-  let ID_GREETING = 'Greeting'
-  self.defineMedia({
-    name: 'Show "',
-    title: 'Show Text',
-    interface: [{ name: ID_GREETING, title: '"', text: '.type your text here..' }, { title: '"' }],
-    javascript: (block) => {
-      return 'quando.text("' + quando_editor.getText(block, ID_GREETING) + '");\n'
-    }
-  })*/
+    /*
+      let ID_GREETING = 'Greeting'
+      self.defineMedia({
+        name: 'Show "',
+        title: 'Show Text',
+        interface: [{ name: ID_GREETING, title: '"', text: '.type your text here..' }, { title: '"' }],
+        javascript: (block) => {
+          return 'quando.text("' + quando_editor.getText(block, ID_GREETING) + '");\n'
+        }
+      })*/
 
+    let LEAP_GESTURE_MENU = 'Leap Gesture Menu'
+    self.defineLeap({
+      name: 'When Leap',
+      interface: [
+        { menu: [['Fist', 'handClosed'], ['Flat', 'handOpen']], name: LEAP_GESTURE_MENU, title: '' },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, LEAP_GESTURE_MENU)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = `quando.leap.${fn}(\nfunction() {\n` +
+          statement +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
 
-
-  let LEAP_GESTURE_MENU = 'Leap Gesture Menu'
-  self.defineLeap({
-    name: 'When Leap',
-    interface: [
-      { menu: [['Fist', 'handClosed'], ['Flat', 'handOpen']], name: LEAP_GESTURE_MENU, title: '' },
-      { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let fn = quando_editor.getMenu(block, LEAP_GESTURE_MENU)
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let result = `quando.leap.${fn}(\nfunction() {\n` +
-        statement +
-        '}' +
-        _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-        ');\n'
-      return result
-    }
-  })
-
-  let WHEN_IDLE = 'When Idle for'
+    let WHEN_IDLE = 'When Idle for'
     let ACTIVE_STATEMENT = 'ACTIVE_STATEMENT'
     self.defineTime({
       name: WHEN_IDLE,
       next: false,
       previous: false,
       interface: [
-                { name: DURATION, title: '', number: '1' }, MENU_UNITS_MINS,
-                { statement: STATEMENT },
-                { row: 'Then When Active', statement: ACTIVE_STATEMENT }
+        { name: DURATION, title: '', number: '1' }, MENU_UNITS_MINS,
+        { statement: STATEMENT },
+        { row: 'Then When Active', statement: ACTIVE_STATEMENT }
       ],
       javascript: (block) => {
         let seconds = quando_editor.getNumber(block, DURATION)
@@ -769,519 +826,521 @@ let EXHIBIT_TO_MENU = ''
         let statement = quando_editor.getStatement(block, STATEMENT)
         let active_statement = quando_editor.getStatement(block, ACTIVE_STATEMENT)
         let result = 'quando.idle(' +
-                    seconds +
-                    ', function() {\n' + statement + '}, function() {\n' +
-                    active_statement + '});\n'
+          seconds +
+          ', function() {\n' + statement + '}, function() {\n' +
+          active_statement + '});\n'
         return result
       }
     })
 
-  self.defineTime({
-    name: 'Check',
-    interface: [
-      { name: FREQUENCY, title: '', number: 1 },
-      {
-        menu: ['Second', 'Minute', 'Hour', 'Day'],
-        name: UNITS_MENU,
-        title: 'times per'
-      },
+    self.defineTime({
+      name: 'Check',
+      interface: [
+        { name: FREQUENCY, title: '', number: 1 },
+        {
+          menu: ['Second', 'Minute', 'Hour', 'Day'],
+          name: UNITS_MENU,
+          title: 'times per'
+        },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let frequency = quando_editor.getNumber(block, FREQUENCY)
+        let seconds = 1
+        switch (quando_editor.getMenu(block, UNITS_MENU)) {
+          case 'Minute': seconds = 60
+            break
+          case 'Hour': seconds = 60 * 60
+            break
+          case 'Day': seconds = 60 * 60 * 24
+            break
+        };
+        let time = seconds / frequency
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = 'quando.every(' +
+          time +
+          ', function() {\n' +
+          statement +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
+    let CONTENT_POSITION = 'Position'
+    let DIRECTION_MENU = 'Direction'
+    let POSITION_SIZE = 'Position Size'
+    self.defineClient({
+      name: CONTENT_POSITION,
+      interface: [
+        {
+          menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
+          name: DIV_MENU, title: ''
+        },
+        { name: POSITION_SIZE, title: '', number: 0 }, { title: '%' },
+        { menu: ['top', 'bottom', 'left', 'right'], name: DIRECTION_MENU, title: 'from' }
+      ],
+      javascript: (block) => {
+        let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
+        let div = quando_editor.getMenu(block, DIV_MENU)
+        let direction = quando_editor.getMenu(block, DIRECTION_MENU)
+        let value = quando_editor.getNumber(block, POSITION_SIZE)
+        result = `quando.${method}('${div}', '${direction}', '${value}%');\n`
+        if (direction == 'bottom') {
+          result += `quando.${method}('${div}', 'top', 'unset');\n` // override the set top 0px
+        } else if (direction == 'right') {
+          result += `quando.${method}('${div}', 'left', 'unset');\n` // override the set left
+        }
+        return result
+      }
+    })
+
+    let CONTENT_SIZE = 'Size'
+    let DIMENSION_MENU = 'Dimension'
+    self.defineClient({
+      name: CONTENT_SIZE,
+      interface: [
+        {
+          menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
+          name: DIV_MENU, title: ''
+        },
+        { name: POSITION_SIZE, title: '', number: 100 }, { title: '%' },
+        { menu: ['height', 'width'], name: DIMENSION_MENU, title: 'of' }
+      ],
+      javascript: (block) => {
+        let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
+        let div = quando_editor.getMenu(block, DIV_MENU)
+        let dimension = quando_editor.getMenu(block, DIMENSION_MENU)
+        let value = quando_editor.getNumber(block, POSITION_SIZE)
+        result = `quando.${method}('${div}', '${dimension}', '${value}%');\n`
+        return result
+      }
+    })
+
+    let PROJECTION_ACTION = 'Projection Action'
+    self.defineDisplay({
+      name: PROJECTION_ACTION,
+      title: '',
+      interface: [
+        { name: 'front_rear', menu: ['Normal', 'Rear'], title: '' },
+        { title: 'Projection' }
+      ],
+      javascript: (block) => {
+        let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
+        let front_rear = quando_editor.getMenu(block, 'front_rear')
+        let scale = '1,1'
+        if (front_rear == 'Rear') {
+          scale = '-1,1'
+        }
+        result = `quando.${method}('html', 'transform', 'scale(${scale})');\n`
+        return result
+      }
+    })
+
+    function _clamp_degrees(degrees) {
+      return degrees >= 0 ? degrees % 360 : (degrees % 360) + 360 // necessary since % of negatives don't work ?!
+    }
+
+    let VALUE_CURSOR = 'Change Cursor'
+    let CHANGE_CURSOR_MENU = 'Cursor menu'
+    let DEVICE_LEFT_RIGHT = '\u21D4'
+    let DEVICE_UP_DOWN = '\u21D5'
+    let CHANGE_MID_VALUE = 'Middle'
+    let CHANGE_PLUS_MINUS = 'plus minus'
+    self.defineCursor({
+      name: VALUE_CURSOR, title: ICON_CONSUME_VALUE + ' Change Cursor',
+      interface: [
+        {
+          name: CHANGE_CURSOR_MENU,
+          title: '',
+          menu: [[DEVICE_LEFT_RIGHT, 'quando.cursor_left_right'],
+
+          [DEVICE_UP_DOWN, 'quando.cursor_up_down']]
+        },
+        {
+          extras: [
+            { name: CHANGE_MID_VALUE, number: 50 }, { title: '%' },
+            { name: CHANGE_PLUS_MINUS, title: '+/-', number: 50 }, { title: '%' }
+          ]
+        },
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, CHANGE_CURSOR_MENU)
+        let extras = {}
+        let mid = quando_editor.getNumber(block, CHANGE_MID_VALUE) / 100
+        let plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS) / 100
+        // converted to 0..1 format
+        extras.min = mid - plus_minus
+        extras.max = mid + plus_minus
+        extras = JSON.stringify(extras)
+        let result = `${fn}(val, ${extras});\n`
+        return result
+      }
+    })
+
+    let MOVE_3D_OBJECT = 'Change 3D Object'
+    let CHANGE_3D_OBJECT_MENU = '3D Object menu'
+    self.defineDevice({
+      name: MOVE_3D_OBJECT, title: ICON_CONSUME_VALUE + ' Move 3D Object',
+      interface: [
+        {
+          name: CHANGE_3D_OBJECT_MENU,
+          title: '',
+          menu: [
+            [DEVICE_LEFT_RIGHT, 'quando.object3d.left_right'],
+            [DEVICE_UP_DOWN, 'quando.object3d.up_down'],
+            ['Zoom', 'quando.object3d.in_out']]
+
+        },
+        {
+          extras: [
+            { name: CHANGE_MID_VALUE, number: 0 }, { title: 'cm' },
+            { name: CHANGE_PLUS_MINUS, title: '+/-', number: 5 }, { title: 'cm' }
+          ]
+        },
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
+        let extras = {}
+        // convert to mm
+        let mid = 10 * quando_editor.getNumber(block, CHANGE_MID_VALUE)
+        let plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        extras.min = mid - plus_minus
+        extras.max = mid + plus_minus
+        extras = JSON.stringify(extras)
+        let result = `${fn}(val, ${extras});\n`
+        return result
+      }
+    })
+
+    let ROTATE_3D_OBJECT = 'Rotate 3D Object'
+    let ROTATE_3D_OBJECT_MENU = '3D Object menu'
+    let CHANGE_MID_ANGLE = 'Change Angle'
+    self.defineDevice({
+      name: ROTATE_3D_OBJECT, title: ICON_CONSUME_VALUE + ' Rotate 3D Object',
+      interface: [
+        {
+          name: ROTATE_3D_OBJECT_MENU,
+          title: '',
+          menu: [
+            ['\u21D4 Yaw', 'quando.object3d.yaw'],
+            ['\u21D5 Pitch', 'quando.object3d.pitch'],
+            ['\u2939\u2938 Roll', 'quando.object3d.roll']]
+
+        },
+        {
+          extras: [
+            { name: CHANGE_MID_ANGLE, title: '', number: 0 }, { title: 'degrees' },
+            { name: CHANGE_PLUS_MINUS, title: '+/-', number: 180 }, { title: 'degrees' }
+          ]
+        },
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
+        let extras = {}
+        let mid = quando_editor.getNumber(block, CHANGE_MID_ANGLE)
+        let plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        extras.min = mid - plus_minus
+        extras.max = mid + plus_minus
+        extras = JSON.stringify(extras)
+        let result = `${fn}(val, ${extras});\n`
+        return result
+      }
+    })
+
+
+    let CHANGE_WITH_MICROBIT_ANGLE = 'When micro:bit angle '
+    let CHANGE_VARIABLE = 'Variable'
+    let CHANGE_ROLL = '\u2939\u2938 Roll'
+    let CHANGE_PITCH = '\u21D5 Pitch'
+    let CHANGE_HEADING = '\u21D4 Heading'
+    let CHANGE_MAG_X = 'Mag X'
+    let CHANGE_MAG_Y = 'Mag Y'
+    let CHECK_INVERTED = 'Inverted'
+
+    self.defineMicrobit({
+      name: CHANGE_WITH_MICROBIT_ANGLE, title: 'When micro:bit angle',
+      interface: [
+        {
+          name: CHANGE_VARIABLE, title: '',
+          menu: [CHANGE_HEADING, CHANGE_PITCH, CHANGE_ROLL,
+            // CHANGE_MAG_X, CHANGE_MAG_Y
+
+          ]
+        },
+        { title: ICON_PRODUCE_VALUE },
+        {
+          extras: [
+            { name: CHANGE_MID_ANGLE, title: '', number: 0 }, { title: 'degrees' },
+            { name: CHANGE_PLUS_MINUS, title: '+/-', number: 25 }, { title: 'degrees' },
+            { name: CHECK_INVERTED, check: false }
+          ]
+        },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
+        switch (variable) {
+          case CHANGE_ROLL: variable = 'handleRoll'
+            break
+          case CHANGE_PITCH: variable = 'handlePitch'
+            break
+          case CHANGE_HEADING: variable = 'handleHeading'
+            break
+          case CHANGE_MAG_X: variable = 'handleMagX'
+            break
+          case CHANGE_MAG_Y: variable = 'handleMagY'
+            break
+        }
+        let extras = {}
+        extras.mid_angle = _clamp_degrees(quando_editor.getNumber(block, CHANGE_MID_ANGLE))
+        extras.plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        if (quando_editor.getCheck(block, CHECK_INVERTED)) {
+          extras['inverted'] = true
+        }
+        extras = JSON.stringify(extras)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = `quando.ubit.${variable}(function(val) {\n${statement}}, ${extras}` +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
+    let CHANGE_WITH_LEAP_DISTANCE = 'When Leap move'
+    let LEAP_LEFT_RIGHT = '\u21D4'
+    let LEAP_HEIGHT = '\u21D5'
+    let LEAP_DEPTH = '\u2922 In-Out'
+    self.defineLeap({
+      name: CHANGE_WITH_LEAP_DISTANCE,
+      interface: [
+        {
+          name: CHANGE_VARIABLE,
+          title: '',
+          menu: [LEAP_LEFT_RIGHT, LEAP_HEIGHT, LEAP_DEPTH]
+        },
+        { title: ICON_PRODUCE_VALUE },
+        {
+          extras: [
+            { name: CHANGE_PLUS_MINUS, title: '+/-', number: 15 }, { title: 'cm' },
+            { name: CHECK_INVERTED, check: false }
+          ]
+        },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let extras = {}
+        // convert to mm
+        let plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        extras.min = -plus_minus
+        extras.max = plus_minus
+        let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
+        switch (variable) {
+          case LEAP_LEFT_RIGHT: variable = 'X'
+            break
+          case LEAP_HEIGHT: variable = 'Y'
+            extras.min = 100 // 10 cm is minimum height set
+            extras.max = 2 * plus_minus + 100 // set to the right height...
+            break
+          case LEAP_DEPTH: variable = 'Z'
+            break
+        }
+        if (quando_editor.getCheck(block, CHECK_INVERTED)) {
+          extras['inverted'] = true
+        }
+        extras = JSON.stringify(extras)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = `quando.leap.handle${variable}(function(val) {\n${statement}}, ${extras}` +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
+    let CHANGE_WITH_LEAP_ANGLE = 'When Leap angle'
+    let CHANGE_YAW = '\u21D4 Yaw'
+    self.defineLeap({
+      name: CHANGE_WITH_LEAP_ANGLE,
+      interface: [
+        {
+          name: CHANGE_VARIABLE,
+          title: '',
+          menu: [CHANGE_YAW, CHANGE_PITCH, CHANGE_ROLL]
+        },
+        { title: ICON_PRODUCE_VALUE },
+        {
+          extras: [
+            { name: CHANGE_MID_ANGLE, title: '', number: 0 }, { title: 'degrees' },
+            { name: CHANGE_PLUS_MINUS, title: '+/-', number: 25 }, { title: 'degrees' },
+            { name: CHECK_INVERTED, check: false }
+          ]
+        },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
+        switch (variable) {
+          case CHANGE_ROLL: variable = 'Roll'
+            break
+          case CHANGE_PITCH: variable = 'Pitch'
+            break
+          case CHANGE_YAW: variable = 'Yaw'
+            break
+        }
+        let extras = {}
+        extras.mid_angle = _clamp_degrees(quando_editor.getNumber(block, CHANGE_MID_ANGLE))
+        extras.plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
+        if (quando_editor.getCheck(block, CHECK_INVERTED)) {
+          extras['inverted'] = true
+        }
+        extras = JSON.stringify(extras)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = `quando.leap.handle${variable}(function(val) {\n${statement}\n}, ${extras}` +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
+    let SHOW_OBJECT3D = 'Object3D'
+    let FILE_OBJECT3D = '\uD83C\uDF81 Show 3D Object'
+    self.defineMedia({
+      name: SHOW_OBJECT3D,
+      title: '',
+      interface: [{ name: FILE_OBJECT3D, file: 'objects' }],
+      javascript: (block) => {
+        let object3d = quando_editor.getFile(block, FILE_OBJECT3D)
+        // return `quando.object3d.loadOBJ('/client/media/', '${object3d}');\n`
+        return `quando.object3d.loadGLTF('/client/media/${object3d}');\n`
+      }
+    })
+
+    let DESCRIPTION_BLOCK = 'Description'
+    let DESCRIPTION_TEXT = 'description_text'
+    self.defineAdvanced({
+      name: DESCRIPTION_BLOCK, title: ' ',
+      interface: [{ name: DESCRIPTION_TEXT, title: ' ', text: '' },
       { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let frequency = quando_editor.getNumber(block, FREQUENCY)
-      let seconds = 1
-      switch (quando_editor.getMenu(block, UNITS_MENU)) {
-        case 'Minute': seconds = 60
-          break
-        case 'Hour': seconds = 60 * 60
-          break
-        case 'Day': seconds = 60 * 60 * 24
-          break
-      };
-      let time = seconds / frequency
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let result = 'quando.every(' +
-        time +
-        ', function() {\n' +
-        statement +
-        '}' +
-        _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-        ');\n'
-      return result
-    }
-  })
+      ],
+      javascript: (block) => {
+        let description = quando_editor.getText(block, DESCRIPTION_TEXT)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let infix = ''
+        if (description != '') {
+          infix = ` // ${description}`
+        }
+        return `{${infix}\n${statement}}\n`
+      }
+    })
 
-  let CONTENT_POSITION = 'Position'
-  let DIRECTION_MENU = 'Direction'
-  let POSITION_SIZE = 'Position Size'
-  self.defineClient({
-    name: CONTENT_POSITION,
-    interface: [
-      { menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
-        name: DIV_MENU, title: '' },
-      { name: POSITION_SIZE, title: '', number: 0 }, {title: '%'},
-      { menu: ['top', 'bottom', 'left', 'right'], name: DIRECTION_MENU, title: 'from' }
-    ],
-    javascript: (block) => {
-      let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
-      let div = quando_editor.getMenu(block, DIV_MENU)
-      let direction = quando_editor.getMenu(block, DIRECTION_MENU)
-      let value = quando_editor.getNumber(block, POSITION_SIZE)
-      result = `quando.${method}('${div}', '${direction}', '${value}%');\n`
-      if (direction == 'bottom') {
-        result += `quando.${method}('${div}', 'top', 'unset');\n` // override the set top 0px
-      } else if (direction == 'right') {
-        result += `quando.${method}('${div}', 'left', 'unset');\n` // override the set left
+    let SCRIPT_BLOCK = 'Javascript: '
+    let SCRIPT_TEXT = 'script_text'
+    self.defineAdvanced({
+      name: SCRIPT_BLOCK,
+      interface: [{ name: SCRIPT_TEXT, title: '', text: '' }
+      ],
+      javascript: (block) => {
+        let script = quando_editor.getRawText(block, SCRIPT_TEXT)
+        return `${script};\n`
+      }
+    })
+
+    let CURSOR_COLOUR_BLOCK = 'Cursor Opacity'
+    let OPACITY = 'Opacity'
+    self.defineCursor({
+      name: CURSOR_COLOUR_BLOCK, title: 'Cursor',
+      interface: [
+        { name: COLOUR, title: '', colour: '#ffcc00' },
+        { name: OPACITY, title: 'Opacity', number: 70 }, { title: '%' }
+      ],
+      javascript: (block) => {
+        let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
+        let opacity = quando_editor.getNumber(block, OPACITY) / 100
+        let colour = quando_editor.getColour(block, COLOUR)
+        let bigint = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour)
+        let r = parseInt(bigint[1], 16)
+        let g = parseInt(bigint[2], 16)
+        let b = parseInt(bigint[3], 16)
+        colour = `rgba(${r}, ${g}, ${b}, ${opacity})`
+        result = `quando.${method}('#cursor', 'background-color', '${colour}');\n`
+        return result
+      }
+    })
+
+    let CURSOR_SIZE_BLOCK = 'Cursor'
+    let SIZE = 'Size'
+    self.defineCursor({
+      name: CURSOR_SIZE_BLOCK,
+      interface: [
+        { name: SIZE, title: 'Size', number: 4.4 }, { title: '% of width' },
+      ],
+      javascript: (block) => {
+        let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
+        let size = quando_editor.getNumber(block, SIZE)
+        let margin = -size / 2
+        result = `quando.${method}('#cursor', ['width','height'], '${size}vw');\n`
+        result += `quando.${method}('#cursor', ['margin-left', 'margin-top'], '${margin}vw');\n`
+        return result
+      }
+    })
+
+    function _getIndividualChildCode(start, prefix, postfix, separator) {
+      let result = ''
+      let child = start
+      while (child != null) {
+        let code = quando_editor.getIndividualBlockCode(child)
+        if (result != '') {
+          result += separator
+        }
+        result += prefix + code + postfix
+        child = child.getNextBlock()
       }
       return result
     }
-  })
 
-  let CONTENT_SIZE = 'Size'
-  let DIMENSION_MENU = 'Dimension'
-  self.defineClient({
-    name: CONTENT_SIZE,
-    interface: [
-      {
-        menu: [['Title', '#quando_title'], ['Text', '#quando_text'], ['Labels', '#quando_labels']],
-        name: DIV_MENU, title: ''
-      },
-      { name: POSITION_SIZE, title: '', number: 100 }, { title: '%' },
-      { menu: ['height', 'width'], name: DIMENSION_MENU, title: 'of' }
-    ],
-    javascript: (block) => {
-      let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
-      let div = quando_editor.getMenu(block, DIV_MENU)
-      let dimension = quando_editor.getMenu(block, DIMENSION_MENU)
-      let value = quando_editor.getNumber(block, POSITION_SIZE)
-      result = `quando.${method}('${div}', '${dimension}', '${value}%');\n`
-      return result
-    }
-  })
-
-  let PROJECTION_ACTION = 'Projection Action'
-  self.defineDisplay({
-    name: PROJECTION_ACTION,
-    title: '',
-    interface: [
-      { name: 'front_rear', menu: ['Normal', 'Rear'], title: '' },
-      { title: 'Projection' }
-    ],
-    javascript: (block) => {
-      let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
-      let front_rear = quando_editor.getMenu(block, 'front_rear')
-      let scale = '1,1'
-      if (front_rear == 'Rear') {
-        scale = '-1,1'
+    let PICK_RANDOM_BLOCK = 'Pick one at Random'
+    self.defineAdvanced({
+      name: PICK_RANDOM_BLOCK, title: '\uD83C\uDFB2 Pick Random',
+      interface: [
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let stateBlock = block.getInputTargetBlock(STATEMENT)
+        let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
+        return `quando.pick_random([\n${arr}\n])\n`
       }
-      result = `quando.${method}('html', 'transform', 'scale(${scale})');\n`
-      return result
-    }
-  })
+    })
 
-  function _clamp_degrees(degrees) {
-    return degrees >= 0 ? degrees % 360 : (degrees % 360) + 360 // necessary since % of negatives don't work ?!
-  }
-
-  let VALUE_CURSOR = 'Change Cursor'
-  let CHANGE_CURSOR_MENU = 'Cursor menu'
-  let DEVICE_LEFT_RIGHT = '\u21D4'
-  let DEVICE_UP_DOWN = '\u21D5'
-  let CHANGE_MID_VALUE = 'Middle'
-  let CHANGE_PLUS_MINUS = 'plus minus'
-  self.defineCursor({
-    name: VALUE_CURSOR, title: ICON_CONSUME_VALUE + ' Change Cursor',
-    interface: [
-      {
-        name: CHANGE_CURSOR_MENU,
-        title: '',
-        menu: [[DEVICE_LEFT_RIGHT, 'quando.cursor_left_right'],
-
-        [DEVICE_UP_DOWN, 'quando.cursor_up_down']]
-      },
-      {
-        extras: [
-          { name: CHANGE_MID_VALUE, number: 50 }, { title: '%' },
-          { name: CHANGE_PLUS_MINUS, title: '+/-', number: 50 }, { title: '%' }
-        ]
-      },
-    ],
-    javascript: (block) => {
-      let fn = quando_editor.getMenu(block, CHANGE_CURSOR_MENU)
-      let extras = {}
-      let mid = quando_editor.getNumber(block, CHANGE_MID_VALUE) / 100
-      let plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS) / 100
-      // converted to 0..1 format
-      extras.min = mid - plus_minus
-      extras.max = mid + plus_minus
-      extras = JSON.stringify(extras)
-      let result = `${fn}(val, ${extras});\n`
-      return result
-    }
-  })
-
-  let MOVE_3D_OBJECT = 'Change 3D Object'
-  let CHANGE_3D_OBJECT_MENU = '3D Object menu'
-  self.defineDevice({
-    name: MOVE_3D_OBJECT, title: ICON_CONSUME_VALUE + ' Move 3D Object',
-    interface: [
-      {
-        name: CHANGE_3D_OBJECT_MENU,
-        title: '',
-        menu: [
-          [DEVICE_LEFT_RIGHT, 'quando.object3d.left_right'],
-          [DEVICE_UP_DOWN, 'quando.object3d.up_down'],
-          ['Zoom', 'quando.object3d.in_out']]
-
-      },
-      {
-        extras: [
-          { name: CHANGE_MID_VALUE, number: 0 }, { title: 'cm' },
-          { name: CHANGE_PLUS_MINUS, title: '+/-', number: 5 }, { title: 'cm' }
-        ]
-      },
-    ],
-    javascript: (block) => {
-      let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
-      let extras = {}
-      // convert to mm
-      let mid = 10 * quando_editor.getNumber(block, CHANGE_MID_VALUE)
-      let plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
-      extras.min = mid - plus_minus
-      extras.max = mid + plus_minus
-      extras = JSON.stringify(extras)
-      let result = `${fn}(val, ${extras});\n`
-      return result
-    }
-  })
-
-  let ROTATE_3D_OBJECT = 'Rotate 3D Object'
-  let ROTATE_3D_OBJECT_MENU = '3D Object menu'
-  let CHANGE_MID_ANGLE = 'Change Angle'
-  self.defineDevice({
-    name: ROTATE_3D_OBJECT, title: ICON_CONSUME_VALUE + ' Rotate 3D Object',
-    interface: [
-      {
-        name: ROTATE_3D_OBJECT_MENU,
-        title: '',
-        menu: [
-          ['\u21D4 Yaw', 'quando.object3d.yaw'],
-          ['\u21D5 Pitch', 'quando.object3d.pitch'],
-          ['\u2939\u2938 Roll', 'quando.object3d.roll']]
-
-      },
-      {
-        extras: [
-          { name: CHANGE_MID_ANGLE, title: '', number: 0 }, { title: 'degrees' },
-          { name: CHANGE_PLUS_MINUS, title: '+/-', number: 180 }, { title: 'degrees' }
-        ]
-      },
-    ],
-    javascript: (block) => {
-      let fn = quando_editor.getMenu(block, CHANGE_3D_OBJECT_MENU)
-      let extras = {}
-      let mid = quando_editor.getNumber(block, CHANGE_MID_ANGLE)
-      let plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
-      extras.min = mid - plus_minus
-      extras.max = mid + plus_minus
-      extras = JSON.stringify(extras)
-      let result = `${fn}(val, ${extras});\n`
-      return result
-    }
-  })
-
-
-  let CHANGE_WITH_MICROBIT_ANGLE = 'When micro:bit angle '
-  let CHANGE_VARIABLE = 'Variable'
-  let CHANGE_ROLL = '\u2939\u2938 Roll'
-  let CHANGE_PITCH = '\u21D5 Pitch'
-  let CHANGE_HEADING = '\u21D4 Heading'
-  let CHANGE_MAG_X = 'Mag X'
-  let CHANGE_MAG_Y = 'Mag Y'
-  let CHECK_INVERTED = 'Inverted'
-
-  self.defineMicrobit({
-    name: CHANGE_WITH_MICROBIT_ANGLE, title: 'When micro:bit angle',
-    interface: [
-      {
-        name: CHANGE_VARIABLE, title: '',
-        menu: [CHANGE_HEADING, CHANGE_PITCH, CHANGE_ROLL,
-          // CHANGE_MAG_X, CHANGE_MAG_Y
-
-        ]
-      },
-      { title: ICON_PRODUCE_VALUE },
-      {
-        extras: [
-          { name: CHANGE_MID_ANGLE, title: '', number: 0 }, { title: 'degrees' },
-          { name: CHANGE_PLUS_MINUS, title: '+/-', number: 25 }, { title: 'degrees' },
-          { name: CHECK_INVERTED, check: false }
-        ]
-      },
-      { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
-      switch (variable) {
-        case CHANGE_ROLL: variable = 'handleRoll'
-          break
-        case CHANGE_PITCH: variable = 'handlePitch'
-          break
-        case CHANGE_HEADING: variable = 'handleHeading'
-          break
-        case CHANGE_MAG_X: variable = 'handleMagX'
-          break
-        case CHANGE_MAG_Y: variable = 'handleMagY'
-          break
+    let PICK_ONE_BLOCK = 'Pick one'
+    self.defineAdvanced({
+      name: PICK_ONE_BLOCK, title: ICON_CONSUME_VALUE + PICK_ONE_BLOCK,
+      interface: [
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let id = block.id
+        let stateBlock = block.getInputTargetBlock(STATEMENT)
+        let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
+        quando_editor.pushToSetup(`quando.setOnId('${id}', [${arr}])\n`)
+        return `quando.pick(val, quando.getOnId('${id}'))\n`
       }
-      let extras = {}
-      extras.mid_angle = _clamp_degrees(quando_editor.getNumber(block, CHANGE_MID_ANGLE))
-      extras.plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
-      if (quando_editor.getCheck(block, CHECK_INVERTED)) {
-        extras['inverted'] = true
+    })
+
+    let PICK_ONE_EACH_BLOCK = 'Pick one each time'
+    self.defineAdvanced({
+      name: PICK_ONE_EACH_BLOCK,
+      interface: [
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let id = block.id
+        let stateBlock = block.getInputTargetBlock(STATEMENT)
+        let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
+        quando_editor.pushToSetup(`quando.setOnId('${id}', [${arr}])\n`)
+        return `quando.pick_one_each_time(quando.getOnId('${id}'))\n`
       }
-      extras = JSON.stringify(extras)
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let result = `quando.ubit.${variable}(function(val) {\n${statement}}, ${extras}` +
-        _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-        ');\n'
-      return result
-    }
-  })
+    })
 
-  let CHANGE_WITH_LEAP_DISTANCE = 'When Leap move'
-  let LEAP_LEFT_RIGHT = '\u21D4'
-  let LEAP_HEIGHT = '\u21D5'
-  let LEAP_DEPTH = '\u2922 In-Out'
-  self.defineLeap({
-    name: CHANGE_WITH_LEAP_DISTANCE,
-    interface: [
-      {
-        name: CHANGE_VARIABLE,
-        title: '',
-        menu: [LEAP_LEFT_RIGHT, LEAP_HEIGHT, LEAP_DEPTH]
-      },
-      { title: ICON_PRODUCE_VALUE },
-      {
-        extras: [
-          { name: CHANGE_PLUS_MINUS, title: '+/-', number: 15 }, { title: 'cm' },
-          { name: CHECK_INVERTED, check: false }
-        ]
-      },
-      { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let extras = {}
-      // convert to mm
-      let plus_minus = 10 * quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
-      extras.min = -plus_minus
-      extras.max = plus_minus
-      let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
-      switch (variable) {
-        case LEAP_LEFT_RIGHT: variable = 'X'
-          break
-        case LEAP_HEIGHT: variable = 'Y'
-          extras.min = 100 // 10 cm is minimum height set
-          extras.max = 2 * plus_minus + 100 // set to the right height...
-          break
-        case LEAP_DEPTH: variable = 'Z'
-          break
-      }
-      if (quando_editor.getCheck(block, CHECK_INVERTED)) {
-        extras['inverted'] = true
-      }
-      extras = JSON.stringify(extras)
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let result = `quando.leap.handle${variable}(function(val) {\n${statement}}, ${extras}` +
-        _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-        ');\n'
-      return result
-    }
-  })
-
-  let CHANGE_WITH_LEAP_ANGLE = 'When Leap angle'
-  let CHANGE_YAW = '\u21D4 Yaw'
-  self.defineLeap({
-    name: CHANGE_WITH_LEAP_ANGLE,
-    interface: [
-      {
-        name: CHANGE_VARIABLE,
-        title: '',
-        menu: [CHANGE_YAW, CHANGE_PITCH, CHANGE_ROLL]
-      },
-      { title: ICON_PRODUCE_VALUE },
-      {
-        extras: [
-          { name: CHANGE_MID_ANGLE, title: '', number: 0 }, { title: 'degrees' },
-          { name: CHANGE_PLUS_MINUS, title: '+/-', number: 25 }, { title: 'degrees' },
-          { name: CHECK_INVERTED, check: false }
-        ]
-      },
-      { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let variable = quando_editor.getMenu(block, CHANGE_VARIABLE)
-      switch (variable) {
-        case CHANGE_ROLL: variable = 'Roll'
-          break
-        case CHANGE_PITCH: variable = 'Pitch'
-          break
-        case CHANGE_YAW: variable = 'Yaw'
-          break
-      }
-      let extras = {}
-      extras.mid_angle = _clamp_degrees(quando_editor.getNumber(block, CHANGE_MID_ANGLE))
-      extras.plus_minus = quando_editor.getNumber(block, CHANGE_PLUS_MINUS)
-      if (quando_editor.getCheck(block, CHECK_INVERTED)) {
-        extras['inverted'] = true
-      }
-      extras = JSON.stringify(extras)
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let result = `quando.leap.handle${variable}(function(val) {\n${statement}\n}, ${extras}` +
-        _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-        ');\n'
-      return result
-    }
-  })
-
-  let SHOW_OBJECT3D = 'Object3D'
-  let FILE_OBJECT3D = '\uD83C\uDF81 Show 3D Object'
-  self.defineMedia({
-    name: SHOW_OBJECT3D,
-    title: '',
-    interface: [{ name: FILE_OBJECT3D, file: 'objects' }],
-    javascript: (block) => {
-      let object3d = quando_editor.getFile(block, FILE_OBJECT3D)
-      // return `quando.object3d.loadOBJ('/client/media/', '${object3d}');\n`
-      return `quando.object3d.loadGLTF('/client/media/${object3d}');\n`
-    }
-  })
-
-  let DESCRIPTION_BLOCK = 'Description'
-  let DESCRIPTION_TEXT = 'description_text'
-  self.defineAdvanced({
-    name: DESCRIPTION_BLOCK, title: ' ',
-    interface: [{ name: DESCRIPTION_TEXT, title: ' ', text: '' },
-    { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let description = quando_editor.getText(block, DESCRIPTION_TEXT)
-      let statement = quando_editor.getStatement(block, STATEMENT)
-      let infix = ''
-      if (description != '') {
-        infix = ` // ${description}`
-      }
-      return `{${infix}\n${statement}}\n`
-    }
-  })
-
-  let SCRIPT_BLOCK = 'Javascript: '
-  let SCRIPT_TEXT = 'script_text'
-  self.defineAdvanced({
-    name: SCRIPT_BLOCK,
-    interface: [{ name: SCRIPT_TEXT, title: '', text: '' }
-    ],
-    javascript: (block) => {
-      let script = quando_editor.getRawText(block, SCRIPT_TEXT)
-      return `${script};\n`
-    }
-  })
-
-  let CURSOR_COLOUR_BLOCK = 'Cursor Opacity'
-  let OPACITY = 'Opacity'
-  self.defineCursor({
-    name: CURSOR_COLOUR_BLOCK, title: 'Cursor',
-    interface: [
-      { name: COLOUR, title: '', colour: '#ffcc00' },
-      { name: OPACITY, title: 'Opacity', number: 70 }, { title: '%' }
-    ],
-    javascript: (block) => {
-      let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
-      let opacity = quando_editor.getNumber(block, OPACITY) / 100
-      let colour = quando_editor.getColour(block, COLOUR)
-      let bigint = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colour)
-      let r = parseInt(bigint[1], 16)
-      let g = parseInt(bigint[2], 16)
-      let b = parseInt(bigint[3], 16)
-      colour = `rgba(${r}, ${g}, ${b}, ${opacity})`
-      result = `quando.${method}('#cursor', 'background-color', '${colour}');\n`
-      return result
-    }
-  })
-
-  let CURSOR_SIZE_BLOCK = 'Cursor'
-  let SIZE = 'Size'
-  self.defineCursor({
-    name: CURSOR_SIZE_BLOCK,
-    interface: [
-      { name: SIZE, title: 'Size', number: 4.4 }, { title: '% of width' },
-    ],
-    javascript: (block) => {
-      let method = _getStyleOnContained(block, [WHEN_VITRINE_BLOCK, WHEN_IDLE])
-      let size = quando_editor.getNumber(block, SIZE)
-      let margin = -size / 2
-      result = `quando.${method}('#cursor', ['width','height'], '${size}vw');\n`
-      result += `quando.${method}('#cursor', ['margin-left', 'margin-top'], '${margin}vw');\n`
-      return result
-    }
-  })
-
-  function _getIndividualChildCode(start, prefix, postfix, separator) {
-    let result = ''
-    let child = start
-    while (child != null) {
-      let code = quando_editor.getIndividualBlockCode(child)
-      if (result != '') {
-        result += separator
-      }
-      result += prefix + code + postfix
-      child = child.getNextBlock()
-    }
-    return result
-  }
-
-  let PICK_RANDOM_BLOCK = 'Pick one at Random'
-  self.defineAdvanced({
-    name: PICK_RANDOM_BLOCK, title: '\uD83C\uDFB2 Pick Random',
-    interface: [
-      { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let stateBlock = block.getInputTargetBlock(STATEMENT)
-      let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
-      return `quando.pick_random([\n${arr}\n])\n`
-    }
-  })
-
-  let PICK_ONE_BLOCK = 'Pick one'
-  self.defineAdvanced({
-    name: PICK_ONE_BLOCK, title: ICON_CONSUME_VALUE + PICK_ONE_BLOCK,
-    interface: [
-      { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let id = block.id
-      let stateBlock = block.getInputTargetBlock(STATEMENT)
-      let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
-      quando_editor.pushToSetup(`quando.setOnId('${id}', [${arr}])\n`)
-      return `quando.pick(val, quando.getOnId('${id}'))\n`
-    }
-  })
-
-  let PICK_ONE_EACH_BLOCK = 'Pick one each time'
-  self.defineAdvanced({
-    name: PICK_ONE_EACH_BLOCK,
-    interface: [
-      { statement: STATEMENT }
-    ],
-    javascript: (block) => {
-      let id = block.id
-      let stateBlock = block.getInputTargetBlock(STATEMENT)
-      let arr = _getIndividualChildCode(stateBlock, 'function(){\n', '}', ',\n')
-      quando_editor.pushToSetup(`quando.setOnId('${id}', [${arr}])\n`)
-      return `quando.pick_one_each_time(quando.getOnId('${id}'))\n`
-    }
-  })
-
-} // self.addBlocks
-}) ()
+  } // self.addBlocks
+})()

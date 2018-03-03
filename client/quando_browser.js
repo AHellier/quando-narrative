@@ -74,6 +74,25 @@
     quando.add_handler(event_name, handler, destruct)
   }
 
+  self.add_exhibit_handler = function(event, callback, exhibitName, destruct = true){
+    var handler = function (ev) {
+      var value = exhibitName(ev)
+      if (value !== null) {
+        callback(value)
+      //  socket.emit("visitor", { 'selectedExhibit': value })
+      //  io.emit('visitor', {'selectedExhibit' : '"'+result+'"'})
+      }
+    }
+    quando.add_handler(event_name, handler, destruct)
+  }
+
+  self.new_exhibit = function (exhibit) {
+    return function (value) {
+      var result = (exhibit)
+      return result
+    }
+  }
+
   self.new_scaler = function (min, max, inverted = false) {
     return function (value) {
       // convert to range 0 to 1 for min to max

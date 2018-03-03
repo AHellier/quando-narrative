@@ -105,8 +105,8 @@
   }
 
 
-
-
+  
+  
   quando.socket.on('ubit', function (data) {
     console.log(data)
     dispatch_gesture('ubitPaired')

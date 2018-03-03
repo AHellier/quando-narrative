@@ -31,10 +31,14 @@ def proxy():
             incoming = radio.receive()
             value = uart.readline()
             if value != None:    
-                #print(value)
-                newValue = str(value).replace("b", "")#removes 'b' from serial input
-                finalValue = newValue.replace("'", '"')# removes "'" from serial input   
-                sendValue = ":" + 'exhibit' + ":" + str(finalValue)   
+               # print(value)
+                newValue = list(str(value))
+                newValue[0] = ""
+                joinValue = "".join(newValue)
+               # print(joinValue)
+                finalValue = joinValue.replace("'", '"')# removes "'" from serial input   
+                sendValue = ':exhibit' + ":" + str(finalValue)   
+               # print(sendValue)
                 radio.send(sendValue)
             elif incoming == None:
                 incomingCount += 1
@@ -48,7 +52,7 @@ def proxy():
                     incomingCount = 0
                     messages = incoming.split('\n')
                     messages.pop() # drop the empty last one
-                    #print(incoming)
+                 #   print(incoming)
                     result = '{'
                     for msg in messages:
                         parts = msg.split(':')
@@ -56,7 +60,7 @@ def proxy():
                         display.show(parts[0])
                     result = result[:-1] + '}' # replace the last , with 
                     resultCount = result.count(",")
-                   # print (result)
+                 #   print(result)
                     if result == '{"proximity":"close"}':
                            closeCount += 1
                            if closeCount == 3:
@@ -77,16 +81,16 @@ def proxy():
                     elif parts[1] == "exhibit":
                         exhibits = result.split(',')
                         num = resultCount + 1
-                        if resultCount is not 0:
+                        if resultCount != 0:
                             for x in range(0, num):
                               if x == 0:
                                    print(exhibits[x] + '}')
-                              elif x is not 0 and x is not resultCount:
+                              elif x != 0 and x != resultCount:
                                    print('{' + exhibits[x] + '}')
                               else: 
                                    print('{' + exhibits[x]) 
                         else: 
-                            print('{' + exhibits[x]) 
+                            print(result) 
                         sleeps(0)
                     else:
                         print(result)
