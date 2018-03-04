@@ -87,7 +87,7 @@
 function emailFunc() {
   var new_Email = document.getElementById('email').value;
   if (new_Email != "") {
-    alert("The email address: '" + new_Email + "' has been accepted.\n\n We hope you enjoy your visit!")
+    alert("The email address: '" + new_Email + "' has been accepted.\n\n We hope you enjoyed your visit!")
     setTimeout("window.close()", 3000)
   } else {
     alert("Please enter a valid email address.")

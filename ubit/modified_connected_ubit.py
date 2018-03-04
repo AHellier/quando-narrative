@@ -110,6 +110,6 @@ print('{"started":true}')
 print('{"visitor":"false"}')
 serial_num = ("C" + str(get_serial_number()))
 serial = '{' + '"' + 'serial":' + '"' + serial_num +'"}'
-print (serial)
+# print (serial)
 proxy()
     

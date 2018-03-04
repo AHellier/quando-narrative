@@ -418,6 +418,7 @@ function ubit_success(serial) {
           lastRemoteMicrobit = 1
           microbit_id = null
           exhibitsList = ""
+          compared = false
         }
       }
     } catch (err) {
@@ -555,8 +556,8 @@ function sleep(serial) {
 //}
 
 app.use('/client', express.static(path.join(client_dir, 'index.html')))
-app.get('/visitor', function (req, res) {
-  res.sendFile(path.join(__dirname + '/client/visitor.html'));
+app.get('/visitorRegister', function (req, res) {
+  res.sendFile(path.join(__dirname + '/client/visitorRegister.html'));
 });
 app.use('/client', express.static(path.join(client_dir, 'index.html')))
 app.get('/visitorLogin', function (req, res) {

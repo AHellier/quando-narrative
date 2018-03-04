@@ -33,7 +33,7 @@ def get_serial_number(type=hex):
         ldr(r0, [r0, 0])
     return type(reg_read(NRF_FICR_BASE + (DEVICEID_INDEX*4)))  
     
-serial_num = ("R" + str(get_serial_number()))
+serial_num = ("T" + str(get_serial_number()))
 serial = ':' + 'serial:' + '"' + serial_num +'"\n'
        
 def lowSignal():

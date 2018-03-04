@@ -760,7 +760,7 @@
       javascript: (block) => {
         let fn = quando_editor.getMenu(block, VISITOR_STATE_MENU)
         let result = 'quando.visitor.' + fn + '(' +
-          'function() {\n' + "window.open('http://127.0.0.1/visitor/', 'Visitor Window', 'width=700,height=500')" +
+          'function() {\n' + "window.open('http://127.0.0.1/visitorRegister/', 'Visitor Window', 'width=700,height=500')" +
           '}' +
           _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
           ');\n'
@@ -788,6 +788,7 @@
         return result
       }
     })
+    
 
     self.defineVisitor({
       name: 'Open Visitor Login Webpage',
@@ -807,29 +808,9 @@
         },
       ],
       javascript: (block) => {
-        return "window.open('http://127.0.0.1/visitor/', 'Visitor Window', 'width=700,height=500')\n"
+        return "var popup_window = window.open('http://127.0.0.1/visitorRegister/', 'Visitor Window', 'width=700,height=500')\n"
       }
     })
-    /*
-        name: 'Open Visitor Form',
-        interface: [{ name }],
-        javascript: (block) => {
-          popupWindow = window.open('http://127.0.0.1/visitor/', 'name', 'width=700,height=500')
-          let result = "popupWindow.focus()"
-          return 'quando.text("' + result + '");\n'
-        }
-      })*/
-
-    /*
-      let ID_GREETING = 'Greeting'
-      self.defineMedia({
-        name: 'Show "',
-        title: 'Show Text',
-        interface: [{ name: ID_GREETING, title: '"', text: '.type your text here..' }, { title: '"' }],
-        javascript: (block) => {
-          return 'quando.text("' + quando_editor.getText(block, ID_GREETING) + '");\n'
-        }
-      })*/
 
     let LEAP_GESTURE_MENU = 'Leap Gesture Menu'
     self.defineLeap({
