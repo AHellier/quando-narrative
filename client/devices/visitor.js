@@ -1,7 +1,7 @@
 (function () {
   var quando = this['quando']
   if (!quando) {
-  //  alert('Fatal Error: ubit must be included after quando_browser')
+    //  alert('Fatal Error: ubit must be included after quando_browser')
   }
   var self = quando.visitor = {}
   var exhibitName = ''
@@ -12,7 +12,7 @@
       quando.dispatch_event(gesture_name)
     }
   }
-  
+
   function _handleExhibit(event, callback, exhibit, destruct = true) {
     var exhibitName = quando.new_exhibit(exhibit.name)
     quando.add_exhibit_handler(event, callback, exhibitName, destruct)
@@ -33,22 +33,22 @@
   self.visitorExit = function (callback, destruct = true) {
     quando.add_handler('visitorExit', callback, destruct)
   }
- 
+
   self.visitorExhibits = function (callback, exhibit = {}, destruct = true) {
     _handleExhibit('visitorExhibit', callback, exhibit, destruct)
- }
+  }
 
   self.visitorExhibit = function (callback, destruct = true) {
-    quando.add_handler('visitorExhibit', callback, destruct)  
- }
+    quando.add_handler('visitorExhibit', callback, destruct)
+  }
 
- self.visitorIdentity1 = function (callback, destruct = true) {
-  quando.add_handler('visitorIdentity1', callback, destruct)  
-}
+  self.visitorIdentity1 = function (callback, destruct = true) {
+    quando.add_handler('visitorIdentity1', callback, destruct)
+  }
 
-self.visitorIdentity2 = function (callback, destruct = true) {
-  quando.add_handler('visitorIdentity2', callback, destruct)  
-}
+  self.visitorIdentity2 = function (callback, destruct = true) {
+    quando.add_handler('visitorIdentity2', callback, destruct)
+  }
 
   quando.socket.on("visitor", function (visitorData) {
     //alert (visitorData.exhibit)
@@ -60,29 +60,27 @@ self.visitorIdentity2 = function (callback, destruct = true) {
       self.last_gesture = ''
     }
     quando.idle_reset()
-    if (visitorData.state == 'entry'){
+    if (visitorData.state == 'entry') {
       dispatch_gesture('visitorEntry')
-    }else if (visitorData.state == 'exit'){
+    } else if (visitorData.state == 'exit') {
       dispatch_gesture('visitorExit')
       self.last_gesture = ''
     }
     quando.idle_reset()
-    if(visitorData.exhibit){
-     quando.dispatch_event('visitorExhibits ', { 'name': visitorData.exhibit })
-   //  if(quando.new_exhibit == visitorData.exhibit){
+    if (visitorData.exhibit) {
+      quando.dispatch_event('visitorExhibits ', { 'name': visitorData.exhibit })
+      //  if(quando.new_exhibit == visitorData.exhibit){
       //  dispatch_gesture('visitorExhibit')
-    // }
+      // }
     }
-    if(visitorData.selectedExhibit){
-     // dispatch_gesture('visitorExhibit')
+    if (visitorData.selectedExhibit) {
+      // dispatch_gesture('visitorExhibit')
     }
-    if(visitorData.identity == 1){
+    if (visitorData.identity == 1) {
       dispatch_gesture('visitorIdentity1')
-      self.last_gesture = ''
-    } else if (visitorData.identity == 2){
+    } else if (visitorData.identity == 2) {
       dispatch_gesture('visitorIdentity2')
-      self.last_gesture = ''
-          }
+    }
   })
 })()
 

@@ -675,11 +675,11 @@
 
     let VISITOR_IDENTITY_MENU = 'Visitor Identity'
     self.defineVisitor({
-      name: 'Visitor',
+      name: 'Visitor Identity',
       interface: [
         {
-          menu: [['Identity 1', 'visitorIdentity1'],
-          ['Identity 2', 'visitorIdentity2']],
+          menu: [['1', 'visitorIdentity1'],
+          ['2', 'visitorIdentity2']],
           name: VISITOR_IDENTITY_MENU, title: ''
         },
         { statement: STATEMENT }
@@ -749,11 +749,11 @@
 
     let VISITOR_STATE_MENU = 'Visitor State'
     self.defineVisitor({
-      name: 'Open Visitor Form upon',
+      name: 'Open Visitor register upon',
       interface: [
         {
           menu: [['Entry', 'visitorEntry'],
-          ['exit', 'visitorExit']],
+          ['Exit', 'visitorExit']],
           name: VISITOR_STATE_MENU, title: ''
         },
       ],
@@ -765,6 +765,49 @@
           _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
           ');\n'
         return result
+      }
+    })
+
+    let VISITOR_MENU = 'Visitor State'
+    self.defineVisitor({
+      name: 'Open Visitor login upon',
+      interface: [
+        {
+          menu: [['Entry', 'visitorEntry'],
+          ['Exit', 'visitorExit']],
+          name: VISITOR_STATE_MENU, title: ''
+        },
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, VISITOR_MENU)
+        let result = 'quando.visitor.' + fn + '(' +
+          'function() {\n' + "window.open('http://127.0.0.1/visitorLogin/', 'Visitor Window', 'width=700,height=500')" +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
+    self.defineVisitor({
+      name: 'Open Visitor Login Webpage',
+      interface: [
+        {
+        },
+      ],
+      javascript: (block) => {
+        return "window.open('http://127.0.0.1/visitorLogin/', 'Visitor Window', 'width=700,height=500')\n"
+      }
+    })
+
+    self.defineVisitor({
+      name: 'Open Visitor Register Webpage',
+      interface: [
+        {
+        },
+      ],
+      javascript: (block) => {
+        return "window.open('http://127.0.0.1/visitor/', 'Visitor Window', 'width=700,height=500')\n"
       }
     })
     /*

@@ -257,7 +257,7 @@ function ubit_success(serial) {
   reported = false
   connected = true
   let orientation = false
-  let proximity = false;
+ // let proximity = false;
   let lastRemoteMicrobit = null
   let checked = false
   let compared = false
@@ -352,6 +352,7 @@ function ubit_success(serial) {
             }
             else if (microbit_id.charAt(0) == "R") {
               remoteMicrobit = microbit_id
+             // console.log("MICROBIT R")
               io.emit('visitor', { 'identity': 1 })
               if (remoteMicrobit != lastRemoteMicrobit) {
                 visitor.findInsert(filename, remoteMicrobit, filename)
@@ -379,6 +380,7 @@ function ubit_success(serial) {
               }
             } else if (microbit_id.charAt(0) == "T") {
               remoteMicrobit = microbit_id
+            //  console.log("MICROBIT T")
               io.emit('visitor', { 'identity': 2 })
               if (remoteMicrobit != lastRemoteMicrobit) {
                 visitor.findInsert(filename, remoteMicrobit, filename)
@@ -414,6 +416,7 @@ function ubit_success(serial) {
           io.emit('ubit', { 'visitor': ubit.visitor })
           io.emit("visitor", { state: 'exit' })
           lastRemoteMicrobit = 1
+          microbit_id = null
           exhibitsList = ""
         }
       }

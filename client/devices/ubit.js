@@ -166,14 +166,14 @@
       }
       quando.idle_reset()
     } else if (data.proximity) {
-      if (data.proximity != lastProximity) {
+     // if (data.proximity != lastProximity) {
         if (data.proximity == 'close') {
           dispatch_gesture('ubitClose')
           lastProximity = 'close'
         } else if (data.proximity == 'far') {
           dispatch_gesture('ubitFar')
           lastProximity = 'far'
-        }
+     //   }
       }
     } else if (data.serial) {
       if (data.serial != lastSerial) {
