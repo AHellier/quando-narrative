@@ -58,24 +58,26 @@ def proxy():
                         parts = msg.split(':')
                         result += '"' + parts[1] + '":' + parts[2] + ','
                         display.show(parts[0])
-                    result = result[:-1] + '}' # replace the last , with 
+                 #   result = result[:-1] + '}' # replace the last , with 
                     resultCount = result.count(",")
                  #   print(result)
-                    if result == '{"proximity":"close"}':
+                    if result == '{"proximity":"close",':
                            closeCount += 1
                            if closeCount == 3:
+                               remoteSerial = '"' + parts[3] + '":' + parts[4] + '}'
+                               result += remoteSerial
                                print(result)
-                               remoteSerial = '{"' + parts[3] + '":' + parts[4] + '}'
-                               print(remoteSerial)
+                             #  print(remoteSerial)
                                closeCount = 0
                                farCount = 0
                        #    incoming = radio.receive()
-                    elif result == '{"proximity":"far"}':
+                    elif result == '{"proximity":"far",':
                            farCount += 1
                            if farCount == 6:
+                            remoteSerial = '"' + parts[3] + '":' + parts[4] + '}'
+                            result += remoteSerial
                             print(result)
-                            remoteSerial = '{"' + parts[3] + '":' + parts[4] + '}'
-                            print(remoteSerial)
+                          #  print(remoteSerial)
                             farCount = 0
                             closeCount = 0
                     elif parts[1] == "exhibit":
@@ -93,9 +95,10 @@ def proxy():
                             print(result) 
                         sleeps(0)
                     else:
+                        remoteSerial = '"' + parts[3] + '":' + parts[4] + '}'
+                        result += remoteSerial
                         print(result)
-                        remoteSerial = '{"' + parts[3] + '":' + parts[4] + '}'
-                        print(remoteSerial)
+                  #      print(remoteSerial)
                         sleeps = 0
         except:
             print('{"error":"packet"}')

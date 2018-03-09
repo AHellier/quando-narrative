@@ -173,7 +173,7 @@
         } else if (data.proximity == 'far') {
           dispatch_gesture('ubitFar')
           lastProximity = 'far'
-     //   }
+    //   }
       }
     } else if (data.serial) {
       if (data.serial != lastSerial) {

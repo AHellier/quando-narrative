@@ -42,7 +42,7 @@ def lowSignal():
       comms = COMMS.CLOSE
       prox = comms[0]+':'+comms[1] + serial
       radio.send(prox)
-  #    print(prox)
+      print(prox)
       
 def highSignal():
       prox = ""
@@ -50,7 +50,7 @@ def highSignal():
       comms = COMMS.FAR
       prox = comms[0]+':'+comms[1] + serial
       radio.send(prox)
- #     print(prox)
+      print(prox)
     
 def proximity():
     lowSignal()
@@ -64,34 +64,35 @@ def gesture():
     ticks = 0
     radio.config(power = 7)
     while True:
-        incoming = radio.receive()
+      #  incoming = radio.receive()
         if proxCount == 4: 
             proximity()
             proxCount = 0
         else:
             proxCount += 1
-        if incoming != None: 
+        #if incoming != None: 
             #print(incoming)
-            incomingData = str(incoming)
-            if os.listdir() != []:
-                with open(EXHIBITS_FILE, 'r') as file:
-                    data = file.read()
-                    if incomingData in str(data): 
-                        print("exhibit already recorded:")
-                        print(data)
-                        radio.send(data)
-                    else: 
-                        finalValue = data + "\n" + incomingData
-                        print("exhibit recorded for the first time")
-                        with open(EXHIBITS_FILE, 'w') as file:
-                            file.write(str(finalValue))
-                            radio.send(finalValue)
-                            print(finalValue)
-            else: 
-                with open(EXHIBITS_FILE, 'w') as file:
-                      file.write(incomingData)  
-                      print("exhibit recorded for the first time...")  
-                      print(incomingData)
+          # if incoming[-2] == "js":
+              #  incomingData = str(incoming)
+              #  if os.listdir() != []:
+              #      with open(EXHIBITS_FILE, 'r') as file:
+              #          data = file.read()
+              #          if incomingData in str(data): 
+              #              print("exhibit already recorded:")
+              #              print(data)
+              #              radio.send(data)
+              #          else: 
+              #              finalValue = data + "\n" + incomingData
+              #              print("exhibit recorded for the first time")
+              #              with open(EXHIBITS_FILE, 'w') as file:
+              #                  file.write(str(finalValue))
+              #                  radio.send(finalValue)
+              #                  print(finalValue)
+              #  else: 
+              #      with open(EXHIBITS_FILE, 'w') as file:
+              #            file.write(incomingData)  
+              #            print("exhibit recorded for the first time...")  
+              #            print(incomingData)
         msg = ""
         msg_a = COMMS.BUTTON_A[0]+':'+COMMS.BUTTON_A[1] + serial
         msg_b = COMMS.BUTTON_B[0]+':'+COMMS.BUTTON_B[1] + serial
@@ -149,7 +150,7 @@ def gesture():
                 msg += comms[0]+':'+comms[1] + serial
         if msg != "":   
             radio.send(msg)
-          #  print(msg)
+            print(msg)
     return # never does
 
 #Main program
