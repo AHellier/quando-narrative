@@ -25,9 +25,19 @@
           data: { 'visitorid': visitorid, 'visitorpassword': visitorpassword },
           success: (res, status, xhr) => {
             if (res.success) {
-              alert(res.message)
+              swal({
+                type: 'success',
+                title: 'Login Successful',
+                html: res.message,
+                footer: 'If you need assistance, please contact a member of staff.',
+                })
             } else {
-              alert('Failed: ' + res.message)
+              swal({
+                type: 'error',
+                title: 'Login Failed',
+                text: res.message,
+                footer: 'If you need assistance, please contact a member of staff.',
+              })
             }
           },
           error: () => {
@@ -35,6 +45,37 @@
           }
         })
       }
+
+      self.handle_visitor_register = () => {
+        let firstName = $('#firstName').val()
+        let emailAddress = $('#email').val()
+        let password = $('#password').val()
+        $.ajax({
+          url: '/create_visitor',
+          type: 'POST',
+          data: { 'firstName': firstName, 'email': emailAddress, 'password' : password},
+          success: (res, status, xhr) => {
+            if (res.success) {
+              swal({
+                type: 'success',
+                title: 'Registration Successful',
+                text: res.message,
+                footer: 'If you need assistance, please contact a member of staff.',})
+            } else {
+           swal({
+              type: 'error',
+              title: 'Registration Failed',
+              text: res.message,
+              footer: 'If you need assistance, please contact a member of staff.',
+            })
+          }
+          },
+          error: () => {
+            alert('Failed to find server ')
+          }
+        })
+      }
+    
     
 
     ;

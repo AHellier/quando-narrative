@@ -84,6 +84,7 @@
   })
 })()
 
+//no longer being used
 function emailFunc() {
   var new_Email = document.getElementById('email').value;
   if (new_Email != "") {
@@ -94,6 +95,7 @@ function emailFunc() {
   }
 }
 
+//no longer being used
 function usernameFunc() {
   var new_username = document.getElementById('visitorId').value;
   var new_password = document.getElementById('visitor').value;
@@ -107,4 +109,10 @@ function usernameFunc() {
 function clearFunc() {
   document.getElementById('visitor').value = "";
   document.getElementById('visitorId').value = "";
+}
+
+function clearRegisterFunc() {
+  document.getElementById('firstName').value = "";
+  document.getElementById('email').value = "";
+  document.getElementById('password').value = "";
 }

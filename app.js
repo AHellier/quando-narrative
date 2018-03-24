@@ -13,7 +13,7 @@ const user = require('./user')
 const visitor = require('./visitor')
 const mongo_store = require('connect-mongo')(session)
 const path = require('path')
-
+const swal = require('sweetalert2')
 const router = express.Router()
 
 const http = require('http').Server(app)
@@ -102,26 +102,41 @@ app.post('/loginVisitor', (req, res) => {
   console.log(body.visitorpassword)
   if (body.visitorid && body.visitorpassword) {
     visitor.login(body.visitorid, body.visitorpassword).then((result) => {
-      if (result != false) {
+      if(result != false) { 
         req.session.user = result
-        console.log(result)
+        console.log("result" +result)
         var splitResult = result.split("-")
         var name = splitResult[0]
         var visitedExhibits = splitResult.slice(1)
-        var finalExhibits = String(visitedExhibits).replace(',', '\n')
-        // console.log(name)
-        // console.log(finalExhibits)
+        var finalExhibits = String(visitedExhibits).split(",")
+        var fileList = fileNames
+
+        for (var i = 0; i < fileList.length; i++) {
+          for(var j = 0; j < finalExhibits.length; j++){
+            if(finalExhibits[j] == fileList[i]){
+              console.log("Removing previously visited exhibit from recommendations...")
+               delete fileList[i]
+             
+            }
+          }
+      }
+        console.log(String(fileList))
+        console.log(String(fileList).replace(/,/g, '<br>'))
         res.json({
-          'success': true, 'message': "Welcome back " + name + '!' + "\n\nHere is a list of exhibits you visited last time: \n" + finalExhibits
-            + '\n\nWe hope you enjoy your visit!'
+          'success': true, 'message': "Welcome back " + name + '! <br> <br>' + " Here is a list of exhibits you visited last time: <br> <br>" 
+          + String(visitedExhibits).replace(/,/g, '').replace(/_.js/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +"<br> <br>"
+          + "Why not visit the exhibits you didn't see last time? Here is a list of exhibits you missed last time and newly opened exhibits: <br> <br>"
+          + String(fileList).replace(/,/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +'<br> <br> We hope you enjoy your visit!'
         })
       } else {
-        res.json({ 'success': false, 'message': 'Please enter a valid username (email address) and password' })
+        res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
       }
     }, (err) => {
       res.json({ 'success': false, 'message': 'Login Failed, please try again' + err })
     })
-  }
+  }else {
+      res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
+    }
 })
 
 app.delete('/login', (req, res) => {
@@ -213,19 +228,22 @@ app.post('/create_visitor', (req, res) => {
   var body = req.body
   console.log(body)
   console.log(body.firstName)
+  console.log(body.email)
   console.log(exhibits)
   for (var j = 0; j < exhibits.length; j++) {
     console.log(exhibits[j])
   }
-  if (body.email != '') {
+  if ((body.email != '') && (body.firstName != '') && (body.password != '')) {
     visitor.save(body.email, body.password, body.firstName, remoteMicrobit, exhibits).then((result) => {
-
+      res.json({'success': true, 'message': "Welcome " +body.firstName + "!\n\nYou've successfully registered!"})
       console.log("Visitor successfully registered")
     }, (err) => {
       console.log("Visitor registration failed")
+      res.json({'success': true, 'message': "Visitor registration failed. Please contract a member of staff."})
     })
   } else {
     console.log("Invalid email address")
+    res.json({'success': false, 'message': "Please fill in all required fields."})
   }
 })
 
@@ -364,6 +382,7 @@ function ubit_success(serial) {
                       io.emit('visitor', { 'exhibit': '"' + result + '"' })
                       exhibitsList += result + ","
                       exhibits = exhibitsList.split(",")
+                      console.log("exhibits: " + exhibits)
                     }
                   })
                 }

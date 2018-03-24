@@ -110,7 +110,6 @@ exports.drop = (collection_name) => {
   })
 }
 
-
 exports.insert = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
