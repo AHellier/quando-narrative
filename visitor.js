@@ -88,7 +88,7 @@ exports.find = (collectionName, doc) => {
   return new Promise((success, fail) => {
     db.find(collectionName, doc).then(function (result) {
       if (result != false) {
-      //  console.log("result " + result)
+        console.log("result " + result)
         success(result)
       } else {
         success(result)

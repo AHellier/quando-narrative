@@ -697,6 +697,29 @@
       }
     })
 
+    let VISITOR_DELETE_MENU = 'Visitor Delete'
+    self.defineVisitor({
+      name: 'After visitor records are cleared from the system',
+      interface: [
+        {
+
+          name: VISITOR_DELETE_MENU, title: ''
+        },
+        { statement: STATEMENT }
+      ],
+      javascript: (block) => {
+        let fn = quando_editor.getMenu(block, VISITOR_DELETE_MENU)
+        let statement = quando_editor.getStatement(block, STATEMENT)
+        let result = 'quando.visitor.visitorDelete' + '(' +
+          'function() {\n' +
+          statement +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
+    })
+
 
   
     getJSON('http://127.0.0.1/client/js/',
@@ -747,71 +770,56 @@
     }
     })
 
-    let VISITOR_STATE_MENU = 'Visitor State'
+
+    let WEBSITE_MENU = 'Website selection'
     self.defineVisitor({
-      name: 'Open Visitor register upon',
+      name: 'Open visitor',
       interface: [
+        {
+          menu: [['Login Webpage', 'http://127.0.0.1/visitorLogin/'],
+          ['Login Update Account Webpage', 'http://127.0.0.1/visitorLoginUpdate/'],
+          ['Register Webpage', 'http://127.0.0.1/visitorRegister/'],
+          ['Register Update Webpage', 'http://127.0.0.1/visitorRegisterUpdate/']],
+          name: WEBSITE_MENU, title: ''
+        },
+      ],
+      javascript: (block) => {
+        let webpage = quando_editor.getMenu(block, WEBSITE_MENU)
+        return "window.open('"+ webpage +"', 'Visitor Window', 'width=700,height=500')\n"
+      }
+    })
+
+
+    let VISITOR_STATE_MENU = 'Visitor State'
+    let VISITOR_WEBSITE_MENU = 'Visitor Website'
+    self.defineVisitor({
+      name: 'Open Visitor',
+      interface: [
+        {
+          menu: [['Login Webpage', 'http://127.0.0.1/visitorLogin/'],
+          ['Login Update Account Webpage', 'http://127.0.0.1/visitorLoginUpdate/'],
+          ['Register Webpage', 'http://127.0.0.1/visitorRegister/'],
+          ['Register Update Webpage', 'http://127.0.0.1/visitorRegisterUpdate/']],
+          name: VISITOR_WEBSITE_MENU, title: ''
+        },
         {
           menu: [['Entry', 'visitorEntry'],
           ['Exit', 'visitorExit']],
-          name: VISITOR_STATE_MENU, title: ''
+          name: VISITOR_STATE_MENU, title:'upon'
         },
       ],
       javascript: (block) => {
         let fn = quando_editor.getMenu(block, VISITOR_STATE_MENU)
+        let website = quando_editor.getMenu(block, VISITOR_WEBSITE_MENU)
         let result = 'quando.visitor.' + fn + '(' +
-          'function() {\n' + "window.open('http://127.0.0.1/visitorRegister/', 'Visitor Window', 'width=700,height=500')" +
+          'function() {\n' + "window.open('" + website  + "', 'Visitor Window', 'width=700,height=500')" +
           '}' +
           _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
           ');\n'
         return result
       }
     })
-
-    let VISITOR_MENU = 'Visitor State'
-    self.defineVisitor({
-      name: 'Open Visitor login upon',
-      interface: [
-        {
-          menu: [['Entry', 'visitorEntry'],
-          ['Exit', 'visitorExit']],
-          name: VISITOR_STATE_MENU, title: ''
-        },
-      ],
-      javascript: (block) => {
-        let fn = quando_editor.getMenu(block, VISITOR_MENU)
-        let result = 'quando.visitor.' + fn + '(' +
-          'function() {\n' + "window.open('http://127.0.0.1/visitorLogin/', 'Visitor Window', 'width=700,height=500')" +
-          '}' +
-          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-          ');\n'
-        return result
-      }
-    })
-    
-
-    self.defineVisitor({
-      name: 'Open Visitor Login Webpage',
-      interface: [
-        {
-        },
-      ],
-      javascript: (block) => {
-        return "window.open('http://127.0.0.1/visitorLogin/', 'Visitor Window', 'width=700,height=500')\n"
-      }
-    })
-
-    self.defineVisitor({
-      name: 'Open Visitor Register Webpage',
-      interface: [
-        {
-        },
-      ],
-      javascript: (block) => {
-        return "var popup_window = window.open('http://127.0.0.1/visitorRegister/', 'Visitor Window', 'width=700,height=500')\n"
-      }
-    })
-
+ 
     let LEAP_GESTURE_MENU = 'Leap Gesture Menu'
     self.defineLeap({
       name: 'When Leap',

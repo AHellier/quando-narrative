@@ -1,0 +1,73 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv='cache-control' content='no-cache'>
+    <meta http-equiv='expires' content='0'>
+    <meta http-equiv='pragma' content='no-cache'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+    <title>Visitor Login</title>
+    <script src="../editor/js/visitorIndex.js" type="text/javascript"></script>
+    <script src="../editor/js/toastr.min.js"></script>
+    <script src="../editor/js/jquery-2.2.0.js"></script>
+    <script src="/client/devices/visitor.js" type="text/javascript"></script>
+    <script src="../editor/js/sweetalert2.min.js"></script>
+    <link rel="icon" href="/editor/resources/favicon.ico">
+</head>
+ <style>
+    body {background-color:#ffffff;background-repeat:no-repeat;background-position:top left;background-attachment:fixed;}
+    h1{text-align:center;font-family:Arial, sans-serif;color:#000000;background-color:#00ffff;}
+    p {text-align:center;font-family:Georgia, serif;font-size:20px;font-style:normal;font-weight:normal;color:#000000;background-color:#ffffff;}
+    form { 
+    margin: 0 auto; 
+    width:250px;
+    }
+    .container {
+            width:  400px;
+            clear: both;
+            margin: 0 auto;
+    }
+    .container input {
+        width:  400px;
+        clear: both;
+        margin: 0 auto;
+    }
+</style>
+ <body>
+    <h1>Visitor Login - Update Account</h1>
+    <p>Please login with the details you signed up with on your last visit. Logging in will update your account with detials of your latest visit.</p>
+    <p></p>
+    <p> If you do not have an acccount, please click the "register" button to create a free account.</p>
+    <p>Creating an account allows you to fully experience our interactive exhibits. </p>
+    <p></p>
+    <p>If you would prefer not to enter your details, please leave all fields blank and click cancel. </p>
+    <p></p>
+    <p>Thank you!</p>
+    </body>
+    <div style="text-align: center;">
+    <div class="form-group">
+    <br>
+    <div class="modal fade" id="login_modal" role="dialog">
+    <div class = "container">
+    <div class="form-group">
+        <label for="visitorId">Email Address: </label>
+        <input type="text" class="form-control" id="visitorId">
+    </div>
+    <div class="form-group">
+        <label for="visitor">Password:</label>
+        <input type="password" class="form-control" id="visitor">
+    </div>
+    </div>
+    </div>
+       <br>
+       <label id="login_modal_footer_message"></label>
+     <button type="Login" onClick="visitorIndex.handle_visitor_update(); clearFunc();">Login</button>
+     <button type="button" onClick="JavaScript:window.close()">Cancel</button>
+     <br>
+     <br>
+     <button onclick="location.href='http://127.0.0.1/visitorRegisterUpdate'; " type="button">
+        Register</button>
+    </div> 
+</div>
+</html>
+

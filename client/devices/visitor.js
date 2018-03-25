@@ -50,6 +50,10 @@
     quando.add_handler('visitorIdentity2', callback, destruct)
   }
 
+  self.visitorDelete = function (callback, destruct = true) {
+    quando.add_handler('visitorDelete', callback, destruct)
+  }
+
   quando.socket.on("visitor", function (visitorData) {
     //alert (visitorData.exhibit)
     if (visitorData.previousVisitor == 'true') {
@@ -65,6 +69,8 @@
     } else if (visitorData.state == 'exit') {
       dispatch_gesture('visitorExit')
       self.last_gesture = ''
+    }else if (visitorData.state == 'delete') {
+      dispatch_gesture('visitorDelete')
     }
     quando.idle_reset()
     if (visitorData.exhibit) {

@@ -80,6 +80,7 @@ exports.remove = (collection_name, query, options) => {
   })
 }
 
+//Create new collection in database.
 exports.create = (collection_name) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -95,6 +96,7 @@ exports.create = (collection_name) => {
   })
 }
 
+//delete (drop) collection of input collection name. 
 exports.drop = (collection_name) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -110,6 +112,7 @@ exports.drop = (collection_name) => {
   })
 }
 
+//Insert serial id if doesn't already exist in collection.
 exports.insert = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -126,6 +129,7 @@ exports.insert = (collection_name, doc, exhibitName) => {
   })
 }
 
+//Search all collections in database, create collection named after exhibit name if doesn't already exist.
 exports.searchCreate = (collection_name) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -153,6 +157,7 @@ exports.searchCreate = (collection_name) => {
   })
 }
 
+//Search database and list all collections and associated information.
 exports.search = () => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -168,6 +173,8 @@ exports.search = () => {
   })
 }
 
+//Search collection for serial id, and if not found, insert id into collection as a new document.
+//If found, update document.
 exports.findInsert = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -190,6 +197,8 @@ exports.findInsert = (collection_name, doc, exhibitName) => {
   })
 }
 
+
+//Update document with new serial ID. 
 exports.update = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -207,23 +216,23 @@ exports.update = (collection_name, doc, exhibitName) => {
   })
 }
 
-exports.remove = (collection_name, query, options) => {
+exports.updateVisitor = (collection_name, doc, exhibitName) => {
   return new Promise((success, fail) => {
-    collection(collection_name).then((_collection) => {
-      _collection.remove(query, options, (err, removed_count) => {
-        if (err) {
-          fail(err)
-        }
-        if (removed_count == 0) {
-          fail(Error('No Scripts to Remove')) // needs fixing...
-        } else {
-          success()
-        }
+    mongodb.MongoClient.connect(mongo_uri, function (err, db) {
+      if (err) throw err
+      var database = db.db("quando")
+      var prevDoc = { _id: doc, exhibit: exhibitName }
+      var newDoc = { _id: doc, exhibit: exhibitName }
+      database.collection(collection_name).updateOne(prevDoc, newDoc, function (err, res) {
+        if (err) throw err
+        console.log("1 document updated")
+        db.close()
+        success()
       })
-    }, fail)
+    })
   })
 }
-
+//Delete all documents in a collection, but keep the collection.
 exports.deleteMany = (collection_name) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -240,6 +249,7 @@ exports.deleteMany = (collection_name) => {
   })
 }
 
+//Delete 1 doucment in collection if found.
 exports.deleteOne = (collection_name, doc) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -255,6 +265,7 @@ exports.deleteOne = (collection_name, doc) => {
   })
 }
 
+//Update serial ID in exhibit collection if it doesn't already exist.
 exports.updateDocs = (collection_name, serial) => {
   return new Promise((success, fail) => {
     mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -266,12 +277,12 @@ exports.updateDocs = (collection_name, serial) => {
             throw err
           }
           if (result != null) {
-            console.log("visitor ID already exists in:" + collection_name)
+            console.log("Serial ID already exists in:" + collection_name)
             //  var returned = "B" + result._id
             success(collection_name)
           } else {
             console.log(result)
-            console.log("Document does not exist in:" + collection_name)
+            console.log("Serial ID does not exist in:" + collection_name)
             exports.insert(collection_name, serial, collection_name);
             success(false)
           }
@@ -282,6 +293,7 @@ exports.updateDocs = (collection_name, serial) => {
   })
 }
 
+//Used to find Micro: Bit serial IDs in mongoDB collections. Return the colection name if serial id found
 exports.find = (collection_name, serial) => {
   return new Promise((success, fail) => {
   mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -305,6 +317,7 @@ exports.find = (collection_name, serial) => {
   })
 }
 
+//Find name of visitor using current connected remote Micro: Bit. Return first name if found.
 exports.findName = (serial) => {
   return new Promise((success, fail) => {
   mongodb.MongoClient.connect(mongo_uri, function (err, db) {
@@ -328,6 +341,7 @@ exports.findName = (serial) => {
   })
 }
 
+//Login visitor if entered details exist in visitor collection.
 exports.login = (username, password) => {
   return new Promise((success, fail) => {
   mongodb.MongoClient.connect(mongo_uri, function (err, db) {

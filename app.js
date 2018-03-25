@@ -13,20 +13,19 @@ const user = require('./user')
 const visitor = require('./visitor')
 const mongo_store = require('connect-mongo')(session)
 const path = require('path')
-const swal = require('sweetalert2')
 const router = express.Router()
 
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 const ubit = require('./ubit')
 
-let connected = false
-var microbit_id = null
-var remoteMicrobit = 1
-var connectedMicroBit = 1
-let filename = null
-let exhibitsList = ""
-let exhibits = []
+let connected = false //Boolean flag used to reflect if a remeote Micro: Bit is connected 
+var microbit_id = null //used to store ubit.serial variable of each Micro: Bit (both remote and connected, depending on request)
+var remoteMicrobit = 1 //Initialise remote Micro: Bit ID as 1 to allow the first remote Micro: Bit to take control of exhibit
+var connectedMicroBit = 1 //Initialise connected Micro: Bit ID as 1 to allow the first remote Micro: Bit to take control of exhibit
+let filename = null //Initialse filename string that is used to contain current deployed exhibit filename
+let exhibitsList = "" //String used to store all exhibits that store current remote Micro: Bit serial ID
+let exhibits = [] //Array used to store each exhibit name that has been converted exhibitsList string 
 
 let server = http.listen(process.env.PORT || 80, () => {
   let host = process.env.IP || server.address().address
@@ -96,49 +95,6 @@ app.post('/login', (req, res) => {
   }
 })
 
-app.post('/loginVisitor', (req, res) => {
-  let body = req.body
-  console.log(body.visitorid)
-  console.log(body.visitorpassword)
-  if (body.visitorid && body.visitorpassword) {
-    visitor.login(body.visitorid, body.visitorpassword).then((result) => {
-      if(result != false) { 
-        req.session.user = result
-        console.log("result" +result)
-        var splitResult = result.split("-")
-        var name = splitResult[0]
-        var visitedExhibits = splitResult.slice(1)
-        var finalExhibits = String(visitedExhibits).split(",")
-        var fileList = fileNames
-
-        for (var i = 0; i < fileList.length; i++) {
-          for(var j = 0; j < finalExhibits.length; j++){
-            if(finalExhibits[j] == fileList[i]){
-              console.log("Removing previously visited exhibit from recommendations...")
-               delete fileList[i]
-             
-            }
-          }
-      }
-        console.log(String(fileList))
-        console.log(String(fileList).replace(/,/g, '<br>'))
-        res.json({
-          'success': true, 'message': "Welcome back " + name + '! <br> <br>' + " Here is a list of exhibits you visited last time: <br> <br>" 
-          + String(visitedExhibits).replace(/,/g, '').replace(/_.js/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +"<br> <br>"
-          + "Why not visit the exhibits you didn't see last time? Here is a list of exhibits you missed last time and newly opened exhibits: <br> <br>"
-          + String(fileList).replace(/,/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +'<br> <br> We hope you enjoy your visit!'
-        })
-      } else {
-        res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
-      }
-    }, (err) => {
-      res.json({ 'success': false, 'message': 'Login Failed, please try again' + err })
-    })
-  }else {
-      res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
-    }
-})
-
 app.delete('/login', (req, res) => {
   delete req.session.user
   res.json({ 'success': true, 'message': 'Logged Out' })
@@ -200,15 +156,54 @@ app.put('/script/deploy/:filename', (req, res) => {
   })
 })
 
-/*app.get('/create_user', (req, res) => {
-  if ((req.session) && (req.session.user)) {
-    res.json({ 'success': true, 'message': 'New user created'})
-  } else {
-    res.json({ 'success': false, 'message': 'User not created' })
-  }
-})*/
 
+/*Post callback function used to login a visitor to the system. If login is successful, return true to visitorIndex.js ajax
+function and appropraite message along with all visited exhibits and the first anme of the visitor logging in. If unsuccessful, 
+return false and appropriate error message. Each response is displayed to the visitor depending on the success status.  */
+app.post('/loginVisitor', (req, res) => {
+  let body = req.body
+  console.log(body.visitorid)
+  console.log(body.visitorpassword)
+  if (body.visitorid && body.visitorpassword) {
+    visitor.login(body.visitorid, body.visitorpassword).then((result) => {
+      if(result != false) { 
+        req.session.user = result
+        console.log("result" +result)
+        var splitResult = result.split("-")
+        var name = splitResult[0]
+        var visitedExhibits = splitResult.slice(1)
+        var finalExhibits = String(visitedExhibits).split(",")
+        var fileList = fileNames
 
+        for (var i = 0; i < fileList.length; i++) {
+          for(var j = 0; j < finalExhibits.length; j++){
+            if(finalExhibits[j] == fileList[i]){
+              console.log("Removing previously visited exhibit from recommendations...")
+               delete fileList[i]      
+          }
+        }
+      }
+        console.log(String(fileList))
+        console.log(String(fileList).replace(/,/g, '<br>'))
+        res.json({
+          'success': true, 'message': "Welcome back " + name + '! <br> <br>' + " Here is a list of exhibits you visited last time: <br> <br>" 
+          + String(visitedExhibits).replace(/,/g, '').replace(/_.js/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +"<br> <br>"
+          + "Why not visit the exhibits you didn't see last time? Here is a list of exhibits you missed last time and newly opened exhibits: <br> <br>"
+          + String(fileList).replace(/,/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +'<br> <br> We hope you enjoy your visit!'
+        })
+      } else {
+        res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
+      }
+    }, (err) => {
+      res.json({ 'success': false, 'message': 'Login Failed, please try again' + err })
+    })
+  }else {
+      res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
+    }
+})
+
+/*Post callback function that creates a new user in Quando editor. A username and password is taken, and if valid, 
+a new user is created and a document with the inputted data is created in the user collection within the quando mongoDB database.*/
 app.post('/create_user', (req, res) => {
   var body = req.body
   console.log(body)
@@ -224,12 +219,18 @@ app.post('/create_user', (req, res) => {
   }
 })
 
+/*Post callback function used to register a new visitor account in the system. Upon registering, the visitors first name, 
+email address, password for their account are obtained fom the visitor. A list of visited exhibits associsated with their assigned remote Micro: Bit
+are also added to their account so that they can view a list of exhibits they viewed on their previous visit. */
 app.post('/create_visitor', (req, res) => {
   var body = req.body
   console.log(body)
   console.log(body.firstName)
   console.log(body.email)
   console.log(exhibits)
+  /* for(var n = 0; n < fileNames.length; n++){
+    visitor.find(fileNames[n], remoteMicrobit)
+  }*/
   for (var j = 0; j < exhibits.length; j++) {
     console.log(exhibits[j])
   }
@@ -245,6 +246,38 @@ app.post('/create_visitor', (req, res) => {
     console.log("Invalid email address")
     res.json({'success': false, 'message': "Please fill in all required fields."})
   }
+})
+
+app.post('/updateVisitor', (req, res) => {
+  let body = req.body
+  console.log(body.visitorid)
+  console.log(body.visitorpassword)
+  if (body.visitorid && body.visitorpassword) {
+    visitor.login(body.visitorid, body.visitorpassword).then((result) => {
+      if(result != false) { 
+        req.session.user = result
+        console.log("result: " +result)
+        var splitResult = result.split("-")
+        var name = splitResult[0]
+        console.log("name: " + name)
+        visitor.save(body.visitorid, body.visitorpassword, name, remoteMicrobit, exhibits).then((result) => {
+          console.log("exhibits save: " + exhibits)
+          res.json({'success': true, 'message': "Hello " + name  + "!\n\nYou've successfully logged in and updated your account with your latest visit. We hope to see you agian soon!"})
+          console.log("Visitor successfully logged in")
+        }, (err) => {
+          console.log("Visitor login failed")
+          res.json({'success': true, 'message': "Visitor login failed. Please contract a member of staff."})
+        })
+       // res.json({'success': true})
+      } else {
+    //    res.json({ 'success': false })
+      }
+    }, (err) => {
+  //    res.json({ 'success': false})
+    })
+  }else {
+ //     res.json({ 'success': false })
+    }
 })
 
 
@@ -315,13 +348,14 @@ function ubit_success(serial) {
             io.emit('ubit', { button: 'a' })
             buttonCount += 1
             console.log(buttonCount)
-            if (buttonCount == 2) {
+            if (buttonCount == 3) {
               for (var i = 0; i < fileNames.length; i++) {
                 if (remoteMicrobit != 1) {
                   console.log(fileNames[i])
                   visitor.deleteOne(fileNames[i], remoteMicrobit)
+                  io.emit("visitor", { state: 'delete' })
                   buttonCount = 0
-                  //  visitor.drop(fileNames[i])
+                 // visitor.drop(fileNames[i])
                 }
               }
             }
@@ -577,4 +611,12 @@ app.get('/visitorRegister', function (req, res) {
 app.use('/client', express.static(path.join(client_dir, 'index.html')))
 app.get('/visitorLogin', function (req, res) {
   res.sendFile(path.join(__dirname + '/client/visitorLogin.html'));
+});
+app.use('/client', express.static(path.join(client_dir, 'index.html')))
+app.get('/visitorLoginUpdate', function (req, res) {
+  res.sendFile(path.join(__dirname + '/client/visitorLoginUpdate.html'));
+});
+app.use('/client', express.static(path.join(client_dir, 'index.html')))
+app.get('/visitorRegisterUpdate', function (req, res) {
+  res.sendFile(path.join(__dirname + '/client/visitorRegisterUpdate.html'));
 });

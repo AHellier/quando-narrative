@@ -75,6 +75,36 @@
           }
         })
       }
+
+      self.handle_visitor_update = () => {
+        let visitorid = $('#visitorId').val()
+        let visitorpassword = $('#visitor').val()
+        $.ajax({
+          url: '/updateVisitor',
+          type: 'POST',
+          data: { 'visitorid': visitorid, 'visitorpassword': visitorpassword },
+          success: (res, status, xhr) => {
+            if (res.success) {
+              swal({
+                type: 'success',
+                title: 'Login Successful',
+                html: res.message,
+                footer: 'If you need assistance, please contact a member of staff.',
+                })
+            } else {
+              swal({
+                type: 'error',
+                title: 'Login Failed',
+                text: res.message,
+                footer: 'If you need assistance, please contact a member of staff.',
+              })
+            }
+          },
+          error: () => {
+            alert('Failed to find server ')
+          }
+        })
+      }
     
     
 
