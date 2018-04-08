@@ -1,13 +1,15 @@
+# Connected micro:bit 
 import radio, math
 from microbit import *
 
+# Enables functionality to read data on the serial port as well as writing
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 _channel = 0
 
+# Obtain micro:bit's unique serial ID
 def get_serial_number(type=hex):
     NRF_FICR_BASE = 0x10000000
     DEVICEID_INDEX = 25 # deviceid[1]
-
     @micropython.asm_thumb
     def reg_read(r0):
         ldr(r0, [r0, 0])

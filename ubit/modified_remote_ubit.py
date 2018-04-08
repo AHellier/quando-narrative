@@ -25,6 +25,7 @@ def radio_on():
     radio.config(channel=_channel, power=1, length=128, data_rate=radio.RATE_2MBIT)
     radio.on()
 
+# Obtain micro:bit's unique serial ID
 def get_serial_number(type=hex):
     NRF_FICR_BASE = 0x10000000
     DEVICEID_INDEX = 25 # deviceid[1]
@@ -35,18 +36,20 @@ def get_serial_number(type=hex):
     
 serial_num = ("T" + str(get_serial_number()))
 serial = ':' + 'serial:' + '"' + serial_num +'"\n'
-       
+
+#Send low signal to indicate close
 def lowSignal():
       prox = ""
-      radio.config(power = 0) #about 100cm
+      radio.config(power = 0) #about 15cm
       comms = COMMS.CLOSE
       prox = comms[0]+':'+comms[1] + serial
       radio.send(prox)
       print(prox)
-      
+
+# Send high signal to indicate far away     
 def highSignal():
       prox = ""
-      radio.config(power = 1) #about 400-500cm
+      radio.config(power = 1) #about 115cm
       comms = COMMS.FAR
       prox = comms[0]+':'+comms[1] + serial
       radio.send(prox)
@@ -70,6 +73,9 @@ def gesture():
             proxCount = 0
         else:
             proxCount += 1
+        # Append received exhibit names if they don't already exist 
+        # in 'exhibits.txt' Send exhibit names back by iterating
+        # 'exbibits.txt' file and sending each exhibit name as JSON string.
         #if incoming != None: 
             #print(incoming)
           # if incoming[-2] == "js":
