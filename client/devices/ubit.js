@@ -47,32 +47,46 @@
     quando.add_handler('ubitB', callback, destruct)
   }
 
+  /**Function that is dispatched when a remote micro:bit pairs
+   * with a connected micro:bit.*/
   self.ubitPaired = function (callback, destruct = true) {
     quando.add_handler('ubitPaired', callback, destruct)
   }
 
+  /**Function that is dispatched when a connected micro:bit 
+   * is plugged into an exhibit. */
   self.ubitConnected = function (callback, destruct = true) {
     quando.add_handler('ubitConnected', callback, destruct)
   }
 
+  /**Function that is dispatched when a connected micro:bit 
+  * is unplugged from an exhibit. */
   self.ubitDisconnected = function (callback, destruct = true) {
     quando.add_handler('ubitDisconnected', callback, destruct)
   }
 
+  /**Function that is dispatched when a remote micro:bit 
+  * is detected as being close to an exhibit. */
   self.ubitClose = function (callback, destruct = true) {
     quando.add_handler('ubitClose', callback, destruct)
   }
 
+  /**Function that is dispatched when a remote micro:bit 
+  * is detected as being far away from an exhibit. */
   self.ubitFar = function (callback, destruct = true) {
     quando.add_handler('ubitFar', callback, destruct)
   }
-
-  self.ubitSerial = function (callback, destruct = true) {
-    quando.add_handler('ubitSerial', callback, destruct)
-  }
-
+  /**Function that is dispatched when a remote micro:bit 
+  * is no longer present/default exhibit screen when no visitors 
+  * are present. */
   self.ubitVisitor = function (callback, destruct = true) {
     quando.add_handler('ubitVisitor', callback, destruct)
+  }
+
+  /**Function that is dispatched when a remote/connected micro:bit's
+*  serual is interpretted via the serial port. */
+  self.ubitSerial = function (callback, destruct = true) {
+    quando.add_handler('ubitSerial', callback, destruct)
   }
 
   function _handleAngle(event, callback, extras, destruct = true) {
@@ -105,11 +119,14 @@
   }
 
 
-  
-  
   quando.socket.on('ubit', function (data) {
     console.log(data)
-    dispatch_gesture('ubitPaired')
+    /**As soon as a transmission is received, 
+     * dispatch the ubitPaired function. If statement 
+     * is used to avoid the visitor not present detection. */
+    if (!data.visitor) {
+      dispatch_gesture('ubitPaired')
+    }
     if (data.Connected == 'true') {
       dispatch_gesture('ubitConnected')
     } else if (data.Disconnected == 'true') {
@@ -165,25 +182,36 @@
         quando.dispatch_event('ubitPitch', { 'detail': pitch })
       }
       quando.idle_reset()
+      /**If data received has a proximty key, 
+      * dispatch either the ubitClose or ubit farAway
+      *  functions depending on the value of the key.
+      * If statement prevents the same function being dispatched 
+      * numerous times.*/
     } else if (data.proximity) {
-     // if (data.proximity != lastProximity) {
+      if (data.proximity != lastProximity) {
         if (data.proximity == 'close') {
           dispatch_gesture('ubitClose')
           lastProximity = 'close'
         } else if (data.proximity == 'far') {
           dispatch_gesture('ubitFar')
           lastProximity = 'far'
-    //   }
+        }
       }
+      /**If data received has a serial key, 
+       * dispatch the ubitSerial function.
+       */
     } else if (data.serial) {
       if (data.serial != lastSerial) {
         dispatch_gesture('ubitSerial')
       }
-    }else if (data.visitor) {
-      if (data.visitor == 'false'){
+      /**If data received has a visitor key, dispatch 
+       * ubitVisitor function that detects when no visitors (micro:bits)
+       * are present.*/
+    } else if (data.visitor) {
+      if (data.visitor == 'false') {
         dispatch_gesture('ubitVisitor')
         lastProximity = ''
-      } 
+      }
     }
   })
 })()

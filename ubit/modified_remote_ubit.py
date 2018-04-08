@@ -1,4 +1,4 @@
-# Remote micro:bit - boot with 'a' button pressed for passive infrared, boot without for face up/down 
+# Remote micro:bit 
 import radio, math, os
 from microbit import *
 # Common - easier this way due to simple build process
@@ -46,7 +46,7 @@ def lowSignal():
       
 def highSignal():
       prox = ""
-      radio.config(power = 7) #about 400-500cm
+      radio.config(power = 1) #about 400-500cm
       comms = COMMS.FAR
       prox = comms[0]+':'+comms[1] + serial
       radio.send(prox)
@@ -62,7 +62,7 @@ def gesture():
     last_gesture = ""
     finalValue = ""
     ticks = 0
-    radio.config(power = 7)
+    radio.config(power = 1)
     while True:
       #  incoming = radio.receive()
         if proxCount == 4: 

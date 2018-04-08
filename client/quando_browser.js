@@ -19,14 +19,14 @@
     return window.innerHeight
   }
 
-  function endSame (longer, shorter) {
+  function endSame(longer, shorter) {
     var loc = longer.indexOf(shorter, longer.length - shorter.length)
     return loc >= 0
   }
 
   self.socket.on('deploy', function (data) {
     var locStr = decodeURIComponent(window.location.href)
-    if (locStr.endsWith('/'+data.script)) {
+    if (locStr.endsWith('/' + data.script)) {
       window.location.reload(true) // nocache reload - probably not necessary
     }
   })
@@ -74,25 +74,6 @@
     quando.add_handler(event_name, handler, destruct)
   }
 
-  self.add_exhibit_handler = function(event, callback, exhibitName, destruct = true){
-    var handler = function (ev) {
-      var value = exhibitName(ev)
-      if (value !== null) {
-        callback(value)
-      //  socket.emit("visitor", { 'selectedExhibit': value })
-      //  io.emit('visitor', {'selectedExhibit' : '"'+result+'"'})
-      }
-    }
-    quando.add_handler(event_name, handler, destruct)
-  }
-
-  self.new_exhibit = function (exhibit) {
-    return function (value) {
-      var result = (exhibit)
-      return result
-    }
-  }
-
   self.new_scaler = function (min, max, inverted = false) {
     return function (value) {
       // convert to range 0 to 1 for min to max
@@ -107,26 +88,26 @@
   }
 
   self.new_angle_scaler = function (mid, plus_minus, inverted = false) {
-    var mod = function(x, n) {
-        return ((x%n)+n)%n
+    var mod = function (x, n) {
+      return ((x % n) + n) % n
     }
     var last_result = 0
-    var crossover = mod(mid+180, 360)
+    var crossover = mod(mid + 180, 360)
     // i.e. 25% of the non used range
     var crossover_range = (180 - Math.abs(plus_minus)) / 4
     return function (value) {
       var x = mod(value - mid, 360)
-      if (x > 180) { x -= 360}
+      if (x > 180) { x -= 360 }
       var result = (x + plus_minus) / (2 * plus_minus)
       if (inverted) {
         result = 1 - result
       }
       if ((result < 0) || (result > 1)) { // i.e. result is out of range
-            // identify if result should be used
-            var diff = Math.abs(crossover - mod(value, 360))
-            if (diff <= crossover_range) { // inside crossover range, so use the last result 
-                result = last_result
-            }
+        // identify if result should be used
+        var diff = Math.abs(crossover - mod(value, 360))
+        if (diff <= crossover_range) { // inside crossover range, so use the last result 
+          result = last_result
+        }
       }
       result = Math.min(1, result)
       result = Math.max(0, result)
@@ -139,7 +120,7 @@
   self._y = _displayHeight()
   self._x = _displayWidth()
 
-  function _cursor_adjust () {
+  function _cursor_adjust() {
     var x = self._x
     var y = self._y
     var style = document.getElementById('cursor').style
@@ -166,22 +147,22 @@
 
   self.cursor_up_down = function (y, extras) {
     if (y === false) {
-      y = (extras.min + extras.max)/2
+      y = (extras.min + extras.max) / 2
     }
     y = 1 - y // invert
     var scr_min = extras.min * _displayHeight()
     var scr_max = extras.max * _displayHeight()
-    self._y = scr_min + (y * (scr_max-scr_min))
+    self._y = scr_min + (y * (scr_max - scr_min))
     _cursor_adjust()
   }
 
   self.cursor_left_right = function (x, extras) {
     if (x === false) {
-      x = (extras.min + extras.max)/2
+      x = (extras.min + extras.max) / 2
     }
     var scr_min = extras.min * _displayWidth()
     var scr_max = extras.max * _displayWidth()
-    self._x = scr_min + (x * (scr_max-scr_min))
+    self._x = scr_min + (x * (scr_max - scr_min))
     _cursor_adjust()
   }
 
@@ -212,15 +193,15 @@
     self.idle_reset_secs = time_secs * 1000
     self.idle_callback = function () {
       self.idle_reset_secs = 0 // why - surely I need to intercept self.idle_reset
-            // actually - this will work to force self.idle_reset to call idle_active_callback instead
+      // actually - this will work to force self.idle_reset to call idle_active_callback instead
       idle_fn()
     }
 
-  self.idle_active_callback = function () {
+    self.idle_active_callback = function () {
       clearTimeout(self.idle_callback_id)
       self.idle_reset_secs = time_secs * 1000 // resets to idle detection
       self.idle_callback_id = setTimeout(self.idle_callback, self.idle_reset_secs)
-            // so, restarts timeout when active
+      // so, restarts timeout when active
       active_fn()
     }
     self.idle_callback_id = setTimeout(self.idle_callback, self.idle_reset_secs)
@@ -243,7 +224,7 @@
     } else {
       elem.style.visibility = 'visible'
       if (typeof txt === 'function') {
-                // HACK: N.B. This may be a security worry?!
+        // HACK: N.B. This may be a security worry?!
         txt = txt()
       }
       elem.innerHTML = txt
@@ -253,8 +234,8 @@
   self.image_update_video = function (img) {
     var image = document.getElementById('quando_image')
     if (image.src != encodeURI(window.location.origin + img)) {
-            // i.e. only stop the video when the image is different - still need to set the image style...
-            // TODO this needs checking for behavioural side effects
+      // i.e. only stop the video when the image is different - still need to set the image style...
+      // TODO this needs checking for behavioural side effects
       self.clear_video()
     }
   }
@@ -310,14 +291,14 @@
       if (frame.hands) {
         self.idle_reset() // any hand data means there is a visitor present...
         if (frame.hands.length !== hands) {
-                    //                var now = (new Date).getTime()
-                    //                if (now > self.leap_start_check_time+1000) {
-                    //                    self.leap_start_check_time = now
+          //                var now = (new Date).getTime()
+          //                if (now > self.leap_start_check_time+1000) {
+          //                    self.leap_start_check_time = now
           hands = frame.hands.length
           if (hands === count) {
             do_fn()
           }
-                    //                }
+          //                }
         }
       }
     }
@@ -334,7 +315,7 @@
 
   self.handed = function (left, right, do_fn) {
     var handler = function () {
-// FIX very inefficient...
+      // FIX very inefficient...
       frame = self.leap.frame()
       var now_left = false
       var now_right = false
@@ -385,26 +366,26 @@
 
   self.startVitrine = function (leap) {
     self.setDefaultStyle('#cursor', 'background-color', 'rgba(255, 255, 102, 0.7)');
-    self.setDefaultStyle('#cursor', ['width','height'], '4.4vw');
-    self.setDefaultStyle('#cursor', ['margin-left','margin-top'], '-2.2vw');    
+    self.setDefaultStyle('#cursor', ['width', 'height'], '4.4vw');
+    self.setDefaultStyle('#cursor', ['margin-left', 'margin-top'], '-2.2vw');
     document.querySelector('#quando_title').addEventListener('contextmenu', // right click title to go to setup
-            function (ev) {
-              ev.preventDefault()
-              window.location.href = '../../client/setup'
-              return false
-            }, false)
+      function (ev) {
+        ev.preventDefault()
+        window.location.href = '../../client/setup'
+        return false
+      }, false)
     self.pinching = false
     if (self.vitrines.size != 0) {
-            // TODO Should this be deferred?
+      // TODO Should this be deferred?
       (self.vitrines.values().next().value)() // this runs the very first vitrine :)
-            // can't use [0] because we don't know the id of the first entry
+      // can't use [0] because we don't know the id of the first entry
     }
   }
 
   self.hover = function (elem) {
     if (elem) {
       if (!elem.classList.contains('focus')) { // the element is not in 'focus'
-                // remove focus from all other elements - since the cursor isn't over them
+        // remove focus from all other elements - since the cursor isn't over them
         self._removeFocus()
         if (elem.classList.contains('quando_label')) {
           elem.classList.add('focus')
@@ -412,25 +393,25 @@
         }
       }
     } else {
-            // remove focus from any elements - since the cursor isn't over any
+      // remove focus from any elements - since the cursor isn't over any
       self._removeFocus()
     }
   }
 
   self.showVitrine = function (id) {
-        // perform any destructors - which will cancel pending events, etc.
+    // perform any destructors - which will cancel pending events, etc.
     var destructor = self._vitrine_destructors.pop()
     while (destructor) {
       destructor()
       destructor = self._vitrine_destructors.pop()
     }
-        // Find vitrine
+    // Find vitrine
     var vitrine = self.vitrines.get(id)
-        // Clear current labels, title and text
+    // Clear current labels, title and text
     document.getElementById('quando_labels').innerHTML = ''
     self.title()
     self.text()
-//        self.video() removed to make sure video can continue playing between displays
+    //        self.video() removed to make sure video can continue playing between displays
     self._resetStyle()
     vitrine()
   }
@@ -511,7 +492,7 @@
     self._vitrine_destructors.push(fn)
   }
 
-  self.pick = function(val, arr) {
+  self.pick = function (val, arr) {
     if (val === false) {
       val = 0.5
     }
@@ -522,12 +503,12 @@
     arr[i]()
   }
 
-  self.pick_random = function(arr) {
+  self.pick_random = function (arr) {
     var r = Math.random()
     self.pick(r, arr)
   }
 
-  self.pick_one_each_time = function(arr) {
+  self.pick_one_each_time = function (arr) {
     if (arr.length > 0) {
       if (!arr.hasOwnProperty('index')) {
         arr.index = 0

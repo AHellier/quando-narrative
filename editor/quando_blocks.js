@@ -43,7 +43,7 @@
     };
     xhr.send();
   };
-  
+
   function _defineBlock(json, category, colour) {
     json.category = category
     if (!quando_editor.exists(json.colour)) {
@@ -547,6 +547,10 @@
       ]
     })
 
+    /** Design and functionality of micro:bit toolset. Paired, connected, 
+    * and disconnected have been added that determines when a remote micro:bit pairs
+    * with an exhibit, and when a connected micro:bit is connected or disconnected from 
+    * an exhibit. Visitor identifcation feature.*/
     self.defineDevice({
       name: 'When Device',
       interface: [
@@ -592,6 +596,8 @@
     })
 
 
+    /** Design and functionality of "when viewing display" for "the first time" or "again" in the
+     * display section of the Quando toolset located in the Quando editor. Visitor Personalisation feature. */
     let VISITOR_STATUS_MENU = 'Visitor Status'
     self.defineDisplay({
       name: 'When viewing the display',
@@ -616,6 +622,9 @@
       }
     })
 
+    /** Block design and functionality of custom URL block located in the
+     * display section of the Quando toolset located in the Quando editor.
+     *  Extended feature. */
     let Width = 'Width'
     let Height = 'Height'
     let WEBSITE = 'Website'
@@ -648,7 +657,8 @@
       }
     })
 
-
+    /** Design and fucntionality of visitor proximity detection block that is located in the visitor section
+     * of the Quando toolset located in the Quando editor. Visitor proximity identification and detection feature. */
     let VISITOR_PROXIMITY_MENU = 'Visitor proximity'
     self.defineVisitor({
       name: 'When visitor',
@@ -673,6 +683,9 @@
       }
     })
 
+    /** Design and fucntionality of visitor identity block that is located in the visitor section
+     * of the Quando toolset located in the Quando editor. Visitor proximity 
+     * identification and personalisation feature. */
     let VISITOR_IDENTITY_MENU = 'Visitor Identity'
     self.defineVisitor({
       name: 'Visitor Identity',
@@ -697,6 +710,9 @@
       }
     })
 
+    /** Design and fucntionality of deletion block that is located in the visitor section
+     * of the Quando toolset located in the Quando editor. Extended feature that 
+     * complements visitor personalisation. */
     let VISITOR_DELETE_MENU = 'Visitor Delete'
     self.defineVisitor({
       name: 'After visitor records are cleared from the system',
@@ -721,7 +737,7 @@
     })
 
 
-  
+
     getJSON('http://127.0.0.1/client/js/',
       function (err, data) {
         if (err != null) {
@@ -734,16 +750,19 @@
         }
       });
 
-   // Build the drop down list of deployed js files (exhibit names)
-   let _exhibit_menu = () => {
-    let choices = [['-----', 0]]
-        for (var i = 0; i < exhibitsList.length; i++) {
+    // Build the drop down list of deployed js files (exhibit names)
+    let _exhibit_menu = () => {
+      let choices = [['-----', 0]]
+      for (var i = 0; i < exhibitsList.length; i++) {
         choices.push([String(exhibitsList[i])])
-        }
-    //  }
-    return choices
+      }
+      //  }
+      return choices
     }
 
+    /** Design of future work proposed block that allows the selection of specific exhibits 
+     * to initiate specific functionality a visitor has interacted witht he specified exhibit.
+     * No functionality, only design of block. */
     let EXHIBIT_TO_MENU = ''
     let SHOW_EXHIBIT_LIST = 'When Visitor has viewed'
     let VISITOR_EXHIBIT_MENU = 'Visitor Exhibit'
@@ -761,16 +780,17 @@
         exhibit = JSON.stringify(fn)
         let statement = quando_editor.getStatement(block, STATEMENT)
         let result = 'quando.visitor.visitorExhibit(' +
-        'function() {\n' +
-        statement +
-        '}' +
-        _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
-        ');\n'
-      return result
-    }
+          'function() {\n' +
+          statement +
+          '}' +
+          _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
+          ');\n'
+        return result
+      }
     })
 
-
+    /** Design and functionality of opening a pre-created HTML page (logion /register).
+     * Visitor indetifaction and personalisation feature.*/
     let WEBSITE_MENU = 'Website selection'
     self.defineVisitor({
       name: 'Open visitor',
@@ -785,11 +805,17 @@
       ],
       javascript: (block) => {
         let webpage = quando_editor.getMenu(block, WEBSITE_MENU)
-        return "window.open('"+ webpage +"', 'Visitor Window', 'width=700,height=500')\n"
+        var w = 600;
+        var h = 750;
+        var left = (screen.width / 2) - (w / 2);
+        var top = (screen.height / 2) - (h / 2);
+        return "window.open('" + webpage + "', 'Visitor Window','width=" + w + ", height=" + h + ",top=" + top + ",left=" + left + "')\n"
       }
     })
 
-
+    /** Design and functionality of alternative variation of opening a pre-created HTML page (logion /register).
+     * Variation allows a user to specify when the chosen webpage is opened in correspondence to the visitors
+     * interaction (entry/ exit). Visitor indetifaction and personalisation feature.*/
     let VISITOR_STATE_MENU = 'Visitor State'
     let VISITOR_WEBSITE_MENU = 'Visitor Website'
     self.defineVisitor({
@@ -805,21 +831,21 @@
         {
           menu: [['Entry', 'visitorEntry'],
           ['Exit', 'visitorExit']],
-          name: VISITOR_STATE_MENU, title:'upon'
+          name: VISITOR_STATE_MENU, title: 'upon'
         },
       ],
       javascript: (block) => {
         let fn = quando_editor.getMenu(block, VISITOR_STATE_MENU)
         let website = quando_editor.getMenu(block, VISITOR_WEBSITE_MENU)
         let result = 'quando.visitor.' + fn + '(' +
-          'function() {\n' + "window.open('" + website  + "', 'Visitor Window', 'width=700,height=500')" +
+          'function() {\n' + "window.open('" + website + "', 'Visitor Window', 'width=700,height=500')" +
           '}' +
           _getOnContained(block, [WHEN_VITRINE_BLOCK], '', ', false') +
           ');\n'
         return result
       }
     })
- 
+
     let LEAP_GESTURE_MENU = 'Leap Gesture Menu'
     self.defineLeap({
       name: 'When Leap',

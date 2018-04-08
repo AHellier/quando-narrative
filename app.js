@@ -166,9 +166,9 @@ app.post('/loginVisitor', (req, res) => {
   console.log(body.visitorpassword)
   if (body.visitorid && body.visitorpassword) {
     visitor.login(body.visitorid, body.visitorpassword).then((result) => {
-      if(result != false) { 
+      if (result != false) {
         req.session.user = result
-        console.log("result" +result)
+        console.log("result" + result)
         var splitResult = result.split("-")
         var name = splitResult[0]
         var visitedExhibits = splitResult.slice(1)
@@ -176,20 +176,20 @@ app.post('/loginVisitor', (req, res) => {
         var fileList = fileNames
 
         for (var i = 0; i < fileList.length; i++) {
-          for(var j = 0; j < finalExhibits.length; j++){
-            if(finalExhibits[j] == fileList[i]){
+          for (var j = 0; j < finalExhibits.length; j++) {
+            if (finalExhibits[j] == fileList[i]) {
               console.log("Removing previously visited exhibit from recommendations...")
-               delete fileList[i]      
+              delete fileList[i]
+            }
           }
         }
-      }
         console.log(String(fileList))
         console.log(String(fileList).replace(/,/g, '<br>'))
         res.json({
-          'success': true, 'message': "Welcome back " + name + '! <br> <br>' + " Here is a list of exhibits you visited last time: <br> <br>" 
-          + String(visitedExhibits).replace(/,/g, '').replace(/_.js/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +"<br> <br>"
-          + "Why not visit the exhibits you didn't see last time? Here is a list of exhibits you missed last time and newly opened exhibits: <br> <br>"
-          + String(fileList).replace(/,/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') +'<br> <br> We hope you enjoy your visit!'
+          'success': true, 'message': "Welcome back " + name + '! <br> <br>' + " Here is a list of exhibits you visited last time: <br> <br>"
+            + String(visitedExhibits).replace(/,/g, '').replace(/_.js/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') + "<br> <br>"
+            + "Why not visit the exhibits you didn't see last time? Here is a list of exhibits you missed last time and newly opened exhibits: <br> <br>"
+            + String(fileList).replace(/,/g, '').replace(/.js/g, '<br>').replace(/_/g, ' ') + '<br> <br> We hope you enjoy your visit!'
         })
       } else {
         res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
@@ -197,9 +197,9 @@ app.post('/loginVisitor', (req, res) => {
     }, (err) => {
       res.json({ 'success': false, 'message': 'Login Failed, please try again' + err })
     })
-  }else {
-      res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
-    }
+  } else {
+    res.json({ 'success': false, 'message': 'Please enter a valid username (your email address) and password.' })
+  }
 })
 
 /*Post callback function that creates a new user in Quando editor. A username and password is taken, and if valid, 
@@ -236,50 +236,50 @@ app.post('/create_visitor', (req, res) => {
   }
   if ((body.email != '') && (body.firstName != '') && (body.password != '')) {
     visitor.save(body.email, body.password, body.firstName, remoteMicrobit, exhibits).then((result) => {
-      res.json({'success': true, 'message': "Welcome " +body.firstName + "!\n\nYou've successfully registered!"})
+      res.json({ 'success': true, 'message': "Welcome " + body.firstName + "!\n\nYou've successfully registered!" })
       console.log("Visitor successfully registered")
     }, (err) => {
       console.log("Visitor registration failed")
-      res.json({'success': true, 'message': "Visitor registration failed. Please contract a member of staff."})
+      res.json({ 'success': true, 'message': "Visitor registration failed. Please contract a member of staff." })
     })
   } else {
     console.log("Invalid email address")
-    res.json({'success': false, 'message': "Please fill in all required fields."})
+    res.json({ 'success': false, 'message': "Please fill in all required fields." })
   }
 })
 
+/* Post callabck function that uses the visitor.save function nested int the visitor.login function to 
+    update a visitors visited exhibits list one they have completed their return visit. */
 app.post('/updateVisitor', (req, res) => {
   let body = req.body
   console.log(body.visitorid)
   console.log(body.visitorpassword)
   if (body.visitorid && body.visitorpassword) {
     visitor.login(body.visitorid, body.visitorpassword).then((result) => {
-      if(result != false) { 
+      if (result != false) {
         req.session.user = result
-        console.log("result: " +result)
+        console.log("result: " + result)
         var splitResult = result.split("-")
         var name = splitResult[0]
         console.log("name: " + name)
         visitor.save(body.visitorid, body.visitorpassword, name, remoteMicrobit, exhibits).then((result) => {
           console.log("exhibits save: " + exhibits)
-          res.json({'success': true, 'message': "Hello " + name  + "!\n\nYou've successfully logged in and updated your account with your latest visit. We hope to see you agian soon!"})
+          res.json({ 'success': true, 'message': "Hello " + name + "!\n\nYou've successfully logged in and updated your account with your latest visit. We hope to see you agian soon!" })
           console.log("Visitor successfully logged in")
         }, (err) => {
           console.log("Visitor login failed")
-          res.json({'success': true, 'message': "Visitor login failed. Please contract a member of staff."})
+          res.json({ 'success': true, 'message': "Visitor login failed. Please contract a member of staff." })
         })
-       // res.json({'success': true})
       } else {
-    //    res.json({ 'success': false })
+        //    res.json({ 'success': false })
       }
     }, (err) => {
-  //    res.json({ 'success': false})
+      //    res.json({ 'success': false})
     })
-  }else {
- //     res.json({ 'success': false })
-    }
+  } else {
+    //     res.json({ 'success': false })
+  }
 })
-
 
 let reported = false
 function ubit_error(err) {
@@ -288,8 +288,8 @@ function ubit_error(err) {
     reported = true
     console.log("Micro:Bit disconnected")
     if (filename != null) {
-      // visitor.drop(filename)
-      // visitor.deleteMany(connectedMicroBit)
+      // visitor.drop(filename) //Used to drop all filenames when connected micro:bit is disconnected
+      // visitor.deleteMany(connectedMicroBit) //Used to drop all instances of connected micro:bit
       remoteMicrobit = 1
       connectedMicroBit = 1
       visitor.previousVisitor = null
@@ -316,16 +316,19 @@ function ubit_success(serial) {
   serial.on('data', (data) => {
     try {
       let ubit = JSON.parse(data)
+      /*Code used to assign the first remote micro:bit as the interator of the exhibit. */
       if (ubit.serial != undefined) {
         microbit_id = ubit.serial
       }
       if (ubit && io) {
         console.log(data)
+        /*Code used to ensure only the first rmeote micro:bit that connects can interact with the exhibit. */
         if (microbit_id == lastRemoteMicrobit) {
           if (checked == true) {
             checked = false
             compared = true
           }
+          /*Code for visitor personalisation*/
           if ((visitor.previousVisitor == true) && (compared == true)) {
             console.log("Returning visitor")
             io.emit("visitor", { previousVisitor: 'true' })
@@ -340,10 +343,7 @@ function ubit_success(serial) {
             visitor.previousVisitor = null
             compared = false
           }
-          if (ubit.Paired) {
-            console.log("Micro:Bit Paired")
-            // io.emit('ubit', { 'proximity': ubit.Paired })
-          }
+          /*Code to delete all instances of remote micro:bit in exhibit collections */
           if ((ubit.button_a) && (lastRemoteMicrobit == microbit_id)) {
             io.emit('ubit', { button: 'a' })
             buttonCount += 1
@@ -355,7 +355,7 @@ function ubit_success(serial) {
                   visitor.deleteOne(fileNames[i], remoteMicrobit)
                   io.emit("visitor", { state: 'delete' })
                   buttonCount = 0
-                 // visitor.drop(fileNames[i])
+                  // visitor.drop(fileNames[i]) //Deletes all exhibit collections in MongoDB
                 }
               }
             }
@@ -392,6 +392,7 @@ function ubit_success(serial) {
 
           }
         }
+        /*Code that recognises a connected micro:bit */
         if ((ubit.serial) && (lastRemoteMicrobit == null)) {
           io.emit('ubit', { 'serial': ubit.serial })
           if (ubit.serial != undefined) {
@@ -401,9 +402,12 @@ function ubit_success(serial) {
               //visitor.searchCreate(connectedMicroBit)
               // visitor.search(connectedMicroBit)
             }
+            /*Code that recognises a remote micro:bit with an identity of 1
+             and iterates all mongoDB exhibit collections that the micro:bit has interacted
+             with and checks for instances of the  micro:bits serial ID. If not present, 
+             document is added to the associated collection. */
             else if (microbit_id.charAt(0) == "R") {
               remoteMicrobit = microbit_id
-              // console.log("MICROBIT R")
               io.emit('visitor', { 'identity': 1 })
               if (remoteMicrobit != lastRemoteMicrobit) {
                 visitor.findInsert(filename, remoteMicrobit, filename)
@@ -412,7 +416,7 @@ function ubit_success(serial) {
                   visitor.find(fileNames[i], remoteMicrobit).then(result => {
                     if (result != false) {
                       console.log(result)
-                      // console.log('{exhibit' + ':' + '"'+result+'"}')
+                      // console.log('{exhibit' + ':' + '"'+result+'"}') //Used for debugging
                       io.emit('visitor', { 'exhibit': '"' + result + '"' })
                       exhibitsList += result + ","
                       exhibits = exhibitsList.split(",")
@@ -430,9 +434,12 @@ function ubit_success(serial) {
                 lastRemoteMicrobit = remoteMicrobit
                 checked = true
               }
+              /*Code that recognises a remote micro:bit with an identity of 2
+              and iterates all mongoDB exhibit collections that the micro:bit has interacted
+              with and checks for instances of the  micro:bits serial ID. If not present, 
+              document is added to the associated collection. */
             } else if (microbit_id.charAt(0) == "T") {
               remoteMicrobit = microbit_id
-              //  console.log("MICROBIT T")
               io.emit('visitor', { 'identity': 2 })
               if (remoteMicrobit != lastRemoteMicrobit) {
                 visitor.findInsert(filename, remoteMicrobit, filename)
@@ -441,7 +448,7 @@ function ubit_success(serial) {
                   visitor.find(fileNames[i], remoteMicrobit).then(result => {
                     if (result != false) {
                       console.log(result)
-                      // console.log('{exhibit' + ':' + '"'+result+'"}')
+                      // console.log('{exhibit' + ':' + '"'+result+'"}') //Used for debugging
                       io.emit('visitor', { 'exhibit': '"' + result + '"' })
                       exhibitsList += result + ","
                       exhibits = exhibitsList.split(",")
@@ -461,9 +468,13 @@ function ubit_success(serial) {
             }
           }
         }
+        /*Code used to update exhibit collections when exhibit names that a vistor has interacted with
+         are sent via their remote micro:bit. Collections are updated accordingly. */
         if ((ubit.exhibit) && (lastRemoteMicrobit == remoteMicrobit)) {
           visitor.updateDocs(ubit.exhibit, remoteMicrobit)
         }
+        /*Code used to reset the exhibit when a visitor leaves and no one
+         is interacting with the exhibit.  */
         if (ubit.visitor) {
           io.emit('ubit', { 'visitor': ubit.visitor })
           io.emit("visitor", { state: 'exit' })
@@ -560,6 +571,9 @@ app.use('/client/deployed_js', express.static(path.join(client_dir, 'deployed_js
 app.get('/client/js/:filename', (req, res) => {
   filename = req.params.filename
   console.log(filename)
+  /** Function that creates a mongoDB collection in the MongoDB database that is named after 
+   * each interactive exhibit that has been deployed in the server, if the collection doesn't
+   *  already  exist. */
   if (filename != null) {
     visitor.searchCreate(filename)
   }
@@ -589,6 +603,12 @@ app.get('/client/js', (req, res) => {
   })
 })
 
+/** Function that writes the exhibit's name to the serial port 
+ * so that it can be read by the connected micro:bit and sent to 
+ * the visitors remote micro:bit. Once received, the exhibit name
+ * is appended to the file system of the rmeote micro:bit if it 
+ * does not already exist. 
+ */
 function writeExhibit(serial) {
   var message = filename
   var write = false
@@ -604,6 +624,7 @@ function writeExhibit(serial) {
 }
 //}
 
+//**Functions that allow access to HTML pages via the client. */
 app.use('/client', express.static(path.join(client_dir, 'index.html')))
 app.get('/visitorRegister', function (req, res) {
   res.sendFile(path.join(__dirname + '/client/visitorRegister.html'));

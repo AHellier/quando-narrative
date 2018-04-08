@@ -13,12 +13,12 @@
   window.onbeforeunload = () => {
     return 'Are you sure you want to leave the editor?' // Doesn't seem to show this message in Chrome?!
   }
-  function _encodeXml (str) {
+  function _encodeXml(str) {
     return str.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;')
   }
   self.setup = () => {
     toastr.options = {
@@ -92,6 +92,9 @@
     })
   }
 
+  /**Function that communicates with the Quando editor and adds functionality 
+   * to the create user button. 
+   */
   self.handle_create_user = () => {
     let userid = $('#newUserId').val()
     let password = $('#newPassword').val()
@@ -208,21 +211,21 @@
     $('#show_modal_code').removeClass('language-xml').addClass('language-javascript')
     $('#show_modal_code').html(quando_editor.getCode())
   }
-  function _success (message) {
+  function _success(message) {
     toastr.options.timeOut = 1500,
-    toastr.success(message)
+      toastr.success(message)
   }
-  function _info (message) {
+  function _info(message) {
     toastr.options.timeOut = 1500,
-    toastr.info(message)
+      toastr.info(message)
   }
-  function _error (message) {
+  function _error(message) {
     toastr.options.timeOut = 5000,
-    toastr.error(message)
+      toastr.error(message)
   }
-  function _warning (message) {
+  function _warning(message) {
     toastr.options.timeOut = 2500,
-    toastr.warning(message)
+      toastr.warning(message)
   }
   self.handle_deploy = () => {
     let code = quando_editor.getCode()
@@ -264,7 +267,7 @@
         success: () => {
           _success('Opening Test...')
           let deploy_window = window.open('/client/js/' + filename + '.js', 'quando_deployed_test',
-                        'left=0,top=0,width=9999,height=9999')
+            'left=0,top=0,width=9999,height=9999')
           deploy_window.focus() // moveTo(0,0);
         },
         error: () => {
@@ -276,7 +279,7 @@
     }
   }
   self.handle_file = (media, block_id, widget_id, path = '') => {
-        // when media is 'UPLOAD', then we are uploading, note then that block_id and widget_id are null
+    // when media is 'UPLOAD', then we are uploading, note then that block_id and widget_id are null
     let file_modal = $('#file_modal')
     if (media == 'UPLOAD') {
       $('.file_modal_upload').show()
@@ -301,22 +304,22 @@
               parent_path = path.substring(0, slash_loc)
             }
             $('#file_list').append(_folder_list_add('..', media, parent_path,
-                            block_id, widget_id))
+              block_id, widget_id))
           }
           for (let i in res.folders) {
             $('#file_list').append(_folder_list_add(res.folders[i], media, path + '/' + res.folders[i],
-                            block_id, widget_id))
+              block_id, widget_id))
           }
           if (path != '') {
             path = path.substring(1) + '/' // strip off the intial slash and put infront of the file
           }
           for (let i in res.files) {
             $('#file_list').append(_file_list_add(res.files[i], path,
-                            'handle_file_selected', block_id, widget_id))
+              'handle_file_selected', block_id, widget_id))
           }
         } else {
           alert('Failed to find server files')
-           $('#file_modal').modal('hide')
+          $('#file_modal').modal('hide')
         }
       },
       error: () => {
@@ -329,13 +332,13 @@
     self.handle_file(media, block_id, widget_id, path)
   }
   self.handle_file_selected = (filename, block_id, widget_id) => {
-        // When blocK-id is null, then this is an upload - so do nothing...
+    // When blocK-id is null, then this is an upload - so do nothing...
     if (block_id != null) {
       let block = Blockly.mainWorkspace.getBlockById(block_id)
       block.setFieldValue(filename, widget_id)
       $('#file_modal').modal('hide')
     }
-        // TODO get/return/set filename
+    // TODO get/return/set filename
   }
   self.handle_upload_media = () => {
     if ($('#upload_media').val()) {
@@ -350,7 +353,7 @@
     let form_data = new FormData()
     form_data.append('upload_data', file)
     $.ajax({
-//            // url: '/upload', // was '/file/upload' + remote_path + '/' + filename,
+      //            // url: '/upload', // was '/file/upload' + remote_path + '/' + filename,
       url: '/file/upload' + remote_path + '/' + filename,
       type: 'POST',
       data: form_data,
@@ -376,11 +379,11 @@
   }
 
   self.handle_upload = () => {
-      let files = Array.from($('#upload_media')[0].files)
-      let remote_path = encodeURI($('#file_modal_path').html())
-      if (files.length > 0) {
-        _upload_next_file(files, remote_path)
-      }
+    let files = Array.from($('#upload_media')[0].files)
+    let remote_path = encodeURI($('#file_modal_path').html())
+    if (files.length > 0) {
+      _upload_next_file(files, remote_path)
+    }
   }
 
   self.local_load = (key) => {
@@ -389,7 +392,7 @@
     _loaded(obj, '#local_load_modal', name)
   }
   self.remote_load = (index) => {
-        // debugger
+    // debugger
     $.ajax({
       url: '/script/id/' + _remote_list[index].id,
       success: (res) => {
@@ -413,7 +416,7 @@
   }
   self.remote_delete = (index) => {
     if (confirm("Delete forever '" + _remote_list[index].name + "' saved " +
-            _remote_list[index].date + ' ?')) {
+      _remote_list[index].date + ' ?')) {
       $.ajax({
         url: '/script/id/' + _remote_list[index].id,
         type: 'DELETE',
@@ -435,7 +438,7 @@
     let id = _remote_list[index].id
     let name = _remote_list[index].name
     $.ajax({
-      url: '/script/tidy/' + JSON.stringify({name:name, id:id}),
+      url: '/script/tidy/' + JSON.stringify({ name: name, id: id }),
       type: 'DELETE',
       success: (res) => {
         if (!res.success) {
@@ -473,14 +476,14 @@
   self.handle_show_version = () => {
     _update_remote_list()
   }
-  function _show_user_status () {
+  function _show_user_status() {
     if (_userid) {
       $('#top_status').html(' ' + _userid)
     } else {
       $('#top_status').html(' Guest')
     }
   }
-  function _loaded (obj, modal_id, name) {
+  function _loaded(obj, modal_id, name) {
     Blockly.mainWorkspace.clear() // Note - this is deferred - so must force the load to be later
     setTimeout(() => {
       _showXml(obj.xml)
@@ -493,7 +496,7 @@
       $('#file_name').html(name)
     }, 0)
   }
-  function _saved (name) {
+  function _saved(name) {
     _success('Saved...')
     $('#local_save_key').val(name)
     $('#remote_save_key').val(name)
@@ -503,9 +506,9 @@
     $('#remote_load_list').html('')
     let ignore = $('#remote_load_show_versions').val() == 'false'
     let ignore_names = []
-    let op = {fn:['remote_delete']}
+    let op = { fn: ['remote_delete'] }
     if (ignore) {
-      op = {fn:['remote_delete', 'remote_tidy', 'remote_delete_all']}
+      op = { fn: ['remote_delete', 'remote_tidy', 'remote_delete_all'] }
     }
     for (let i = 0; i < _remote_list.length; i++) {
       let name = _remote_list[i].name
@@ -514,8 +517,8 @@
         add = false
       }
       if (add) {
-        let main = {name:name, fn:'remote_load'}
-        let data = {name:_remote_list[i].date}
+        let main = { name: name, fn: 'remote_load' }
+        let data = { name: _remote_list[i].date }
         $('#remote_load_list').append(_remote_load_list_add(i, main, data, op))
         if (ignore) { // add the just found name to the ignore list...
           ignore_names.push(name)
@@ -523,7 +526,7 @@
       }
     }
   }
-  function _remote_load_list () {
+  function _remote_load_list() {
     $.ajax({
       url: '/script/names/' + _userid,
       success: (res) => {
@@ -544,14 +547,14 @@
       }
     })
   }
-  function _local_load_list () {
+  function _local_load_list() {
     $('#local_load_list').html('')
-    let op = {fn:'local_delete'}
-    let data = {name:''}
+    let op = { fn: 'local_delete' }
+    let data = { name: '' }
     for (let key in localStorage) {
       if (key.startsWith(PREFIX)) {
         let name = key.slice(PREFIX.length)
-        let main = {name:name, fn:'local_load'}
+        let main = { name: name, fn: 'local_load' }
         $('#local_load_list').append(_load_list_add(key, main, data, op))
       }
     }
@@ -559,7 +562,7 @@
       $('#local_load_list').html('No saves available')
     }
   }
-  function _showXml (xmlText) {
+  function _showXml(xmlText) {
     if (xmlText) {
       xmlDom = Blockly.Xml.textToDom(xmlText)
       Blockly.Xml.domToWorkspace(xmlDom, Blockly.mainWorkspace)
@@ -575,70 +578,70 @@
     }
     return result
   }
-  function _load_list_add (id, main, data, op) {
+  function _load_list_add(id, main, data, op) {
     let result = '<div class="row">' +
-        '<a class="list-group-item col-md-5"' + _load_list_add_fn(id, main)
-        + '>' + main.name + '</a>' +
-        '<div class="col-sm-4 dropdown">' + data.name + '</div>' +
-        '<div class="list-group-item col-sm-1 glyphicon glyphicon-remove"' +
-        _load_list_add_fn(id, op) + '></div>' +
-        '<div class="col-sm-2"></div>' +
+      '<a class="list-group-item col-md-5"' + _load_list_add_fn(id, main)
+      + '>' + main.name + '</a>' +
+      '<div class="col-sm-4 dropdown">' + data.name + '</div>' +
+      '<div class="list-group-item col-sm-1 glyphicon glyphicon-remove"' +
+      _load_list_add_fn(id, op) + '></div>' +
+      '<div class="col-sm-2"></div>' +
       '</div>\n'
     return result
   }
   function _remote_load_list_add_fn(index, id, obj, icon, infix) {
     let result = ''
     if (obj.fn.length > index) {
-        result += ' glyphicon ' + icon
+      result += ' glyphicon ' + icon
     }
     result += '"'
     if (obj.fn.length > index) {
-        result += 'onclick="index.' + obj.fn[index] + '(' + id + ')"'
+      result += 'onclick="index.' + obj.fn[index] + '(' + id + ')"'
     }
     result += '>'
     if (obj.fn.length > index) {
-        result += `<sub>\n${infix}</sub>`
+      result += `<sub>\n${infix}</sub>`
     }
     return result
   }
-  function _remote_load_list_add (id, main, data, obj) {
+  function _remote_load_list_add(id, main, data, obj) {
     let result = '<div class="row">' +
       '<a class="list-group-item col-md-5"' + _load_list_add_fn(id, main)
       + '>' + main.name + '</a>' +
-        '<div class="col-sm-4 dropdown">' + data.name + '</div>' +
-        '<div class="col-sm-1' + _remote_load_list_add_fn(0, id, obj, 'glyphicon-remove', 'latest') + '</div>' + 
-        '<div class="col-sm-1' + _remote_load_list_add_fn(1, id, obj, 'glyphicon-erase', 'oldest') + '</div>' + 
-        '<div class="col-sm-1' + _remote_load_list_add_fn(2, id, obj, 'glyphicon-remove-sign', 'ALL') + '</div>' + 
+      '<div class="col-sm-4 dropdown">' + data.name + '</div>' +
+      '<div class="col-sm-1' + _remote_load_list_add_fn(0, id, obj, 'glyphicon-remove', 'latest') + '</div>' +
+      '<div class="col-sm-1' + _remote_load_list_add_fn(1, id, obj, 'glyphicon-erase', 'oldest') + '</div>' +
+      '<div class="col-sm-1' + _remote_load_list_add_fn(2, id, obj, 'glyphicon-remove-sign', 'ALL') + '</div>' +
       '</div>\n'
     return result
   }
-  function _file_list_add (file_name, path, fn_name, block_id, widget_id) {
+  function _file_list_add(file_name, path, fn_name, block_id, widget_id) {
     let result = '<div class="row"><div class="col-sm-1"> </div>' +
-            '<a class="list-group-item col-md-5" onclick="index.' +
-            `${fn_name}('${path}${file_name}', `
+      '<a class="list-group-item col-md-5" onclick="index.' +
+      `${fn_name}('${path}${file_name}', `
     if (block_id == null) {
       result += 'null'
     } else {
       result += `'${block_id}'`
     }
     result += `, '${widget_id}')">${file_name}</a>` +
-            '</div>\n'
+      '</div>\n'
     return result
   }
-  function _folder_list_add (folder_name, media, path, block_id, widget_id) {
+  function _folder_list_add(folder_name, media, path, block_id, widget_id) {
     let result = '<div class="row"><div class="col-sm-1"> </div>' +
-            '<a class="list-group-item col-md-5" onclick="index.' +
-                `handle_folder_selected('${media}', `
+      '<a class="list-group-item col-md-5" onclick="index.' +
+      `handle_folder_selected('${media}', `
     if (block_id == null) {
       result += 'null'
     } else {
       result += `'${block_id}'`
     }
     result += `, '${widget_id}', '${path}')">&#x1f5c1; ${folder_name}</a>` +
-            '</div>\n'
+      '</div>\n'
     return result
   }
-  function _getXml () {
+  function _getXml() {
     let xmlDom = Blockly.Xml.workspaceToDom(Blockly.mainWorkspace)
     return Blockly.Xml.domToPrettyText(xmlDom)
   }
