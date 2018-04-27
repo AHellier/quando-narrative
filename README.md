@@ -15,20 +15,15 @@ Prerequisites: Chrome, Node JS, mongoDB (complete install in c:\mongodb), git fo
 ### To add the automatic startup
 1. using Windows R, run gpedit.msc
 2. Choose Computer Configuration->Windows Settings->Scripts->Startup
-    1. Then 'Add' C:\quando\mongodb.bat and c:\quando\quando.bat (second)
-3. mkdir c:\mongodb\data\db
-    1. Run mongodb.bat from the command line (just this once) - you will need to use another command line
-- Note: you may need to edit mongodb.bat to change the location of data and logfile
-4. run c:\mongodb\bin\mongo
-    1. use quando
-    2. db.user.insert({_id:'test',password:'text'})
-5. run quando (which runs node app.js)
-6. Then open 127.0.0.1/editor for the editor, login as test/test
+    1. Then 'Add' c:\quando\quando.bat
+3. Add a user (?)
+5. run quando.bat (which runs node app.js)
+6. Then open 127.0.0.1/editor in Chrome for the editor, login as test/test
 7. and 127.0.0.1/client/setup to choose a deployed behaviour (and see external IP address)
 
 If everything is fine - then try restarting to see if everything boots correctly - and test remotely to be sure that you can edit remotely.
 
-Optional - npm install -g nodemon
+Optional ~~for developers~~ - npm install -g nodemon
 
 To update (assuming quando has changed), First kill the Node.js process in the task manager,
 then use:

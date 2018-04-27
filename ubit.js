@@ -1,5 +1,11 @@
-const serialport = require('serialport')
-
+let serialport = null
+try {
+  serialport = require('serialport')
+} catch (e) {
+  if (e.code !== 'MODULE_NOT_FOUND') {
+    throw e
+  }
+}
 // list serial ports:
 const find_microbit = (error, success) => {
   serialport.list((err, ports) => {
@@ -23,13 +29,17 @@ const find_microbit = (error, success) => {
 
 exports.get_serial = (error, success) => {
   find_microbit(error, (comName) => {
-    let serial = new serialport(comName, {baudRate: 115200, parser: serialport.parsers.readline('\n')}, (err) => {
-      if (err) {
-        error(err)
-      } else {
-        success(serial)
-      }
-    })
+    if (serialport) {
+      let serial = new serialport(comName, {baudRate: 115200, parser: serialport.parsers.readline('\n')}, (err) => {
+        if (err) {
+          error(err)
+        } else {
+          success(serial)
+        }
+      })
+    } else {
+      error('Failed to load serialport')
+    }
   })
 }
 /* e.g.
