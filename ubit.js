@@ -28,8 +28,8 @@ const find_microbit = (error, success) => {
 }
 
 exports.get_serial = (error, success) => {
+if (serialport) {
   find_microbit(error, (comName) => {
-    if (serialport) {
       let serial = new serialport(comName, {baudRate: 115200, parser: serialport.parsers.readline('\n')}, (err) => {
         if (err) {
           error(err)
@@ -37,10 +37,10 @@ exports.get_serial = (error, success) => {
           success(serial)
         }
       })
+  })
     } else {
       error('Failed to load serialport')
     }
-  })
 }
 /* e.g.
 get_serial((err)=>{console.log("Error:" + err)},
