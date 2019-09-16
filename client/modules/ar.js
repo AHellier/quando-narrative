@@ -57,7 +57,7 @@
           marker.setAttribute('type', 'pattern')
           marker.setAttribute('id', markerID)
           //NOTE: below URLs must be hosted online instead of relatively for some dumb reason
-          marker.setAttribute('url', 'https://raw.githubusercontent.com/andrewfstratton/quando/ar_dev/client/media/markers/'+markerID+'.patt')
+          marker.setAttribute('url', 'https://raw.githubusercontent.com/andrewfstratton/quando/client/media/markers/'+markerID+'.patt')
         }
       }
       return marker
