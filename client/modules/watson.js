@@ -229,6 +229,7 @@
                       input.value = text
                       input.click()
                     }
+                  } else {
                   }
                   
                 })
@@ -273,6 +274,7 @@
 
 
   self.addToneHandler = function(goalTone, fn) {
+    quando.promptInput()
     //adds 'onClick' event listener to the input prompt button
     //which submits the prompts text to the tone analyzer
     let input = document.getElementById('inp')

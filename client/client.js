@@ -778,7 +778,7 @@
   }
 
   self.promptInput = function() {
-    let input = document.getElementById('imp')
+    let input = document.getElementById('inp')
     console.log("inp=" + input)
     if (input == null) {
       let elem = document.getElementById('quando_labels')
