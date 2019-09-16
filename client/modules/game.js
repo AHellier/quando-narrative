@@ -43,12 +43,12 @@
 
     //if we're watching the inventory, and the inventory contains what it should
     //we fire the function specified in the handler
-    if (self.watching_inv == true) {
-      if (self.inventory.includes(self.goal_item)) {
-        self.on_inv_match()
-        self.stop_inv_watch()
-      }
-    }
+    // if (self.watching_inv == true) {
+    //   if (self.inventory.includes(self.goal_item)) {
+    //     self.on_inv_match()
+    //     self.stop_inv_watch()
+    //   }
+    // }
   }
 
   self.get_inv = function() {
@@ -65,6 +65,7 @@
     self.watching_inv = true
     self.goal_item = item
     self.on_inv_match = fn
+    alert('testing')
 
     //if we're watching the inventory, and the inventory contains what it should
     //we fire the function specified in the block
