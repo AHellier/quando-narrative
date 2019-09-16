@@ -65,7 +65,6 @@
     self.watching_inv = true
     self.goal_item = item
     self.on_inv_match = fn
-    alert('testing')
 
     //if we're watching the inventory, and the inventory contains what it should
     //we fire the function specified in the block
