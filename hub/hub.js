@@ -4,6 +4,27 @@ function set(id, val) {
   $('#'+id).html(val)
 }
 
+function add_nao_ip() {
+  let ip = document.getElementById('nao_ip')
+  let name = document.getElementById('nao_name')
+  $.ajax({
+    url: '/nao',
+    type: 'POST',
+    data: { 'ip': ip.value, 'name': name.value },
+    success: (res) => {
+      if (res.success) {
+        set('add_nao_message', "Added IP '"+ip.value+"'...")
+        name.value = ''
+      } else {
+        set('add_nao_message', "Failed to add: " + res.message)
+      }
+    },
+    error: () => {
+      set('add_nao_message', "Failed to find server")
+    }
+  })
+}
+
 function add_user() {
   let userid = document.getElementById('userid')
   let password = document.getElementById('password')
@@ -28,6 +49,7 @@ function add_user() {
 
 function onload() {
   document.getElementById('add_user_button').onclick = add_user
+  document.getElementById('add_nao_button').onclick = add_nao_ip
   $.ajax({
     url: '/ip',
     success: (res) => {

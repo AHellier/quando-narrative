@@ -12,11 +12,7 @@
         wrist : { left: {yaw: {}}, right: {yaw: {}}}
     }
 
-    let sineBuffer = []
-    let sinePlayDelay = 120
-    let sinePlaying = false
     const STEP_LENGTH = 25.0/1000 //in mm
-
 
     class vocabList {
         constructor(listName, vocab) {
@@ -38,55 +34,6 @@
     }
 
     self._list = []
-    self._armActionsList = {}
-
-    let ARM_LOOKUP = {
-        "left": {
-            "up": {
-                "joint": "LShoulderPitch",
-                "halfway": "0",
-                "maximum": "-80",
-                "value": 1.5,
-            },
-            "down": {
-                "joint": "LShoulderPitch",
-                "halfway": "0",
-                "maximum": "90",
-            },
-            "out": {
-                "joint": "LShoulderRoll",
-                "halfway": "30",
-                "maximum": "60",
-            },
-            "in": {
-                "joint": "LShoulderRoll",
-                "halfway": "0",
-                "maximum": "-18",
-            }
-        },
-        "right": {
-            "up": {
-                "joint": "RShoulderPitch",
-                "halfway": "0",
-                "maximum": "-80",
-            },
-            "down": {
-                "joint": "RShoulderPitch",
-                "halfway": "0",
-                "maximum": "90",
-            },
-            "in": {
-                "joint": "RShoulderRoll",
-                "halfway": "0",
-                "maximum": "18",
-            },
-            "out": {
-                "joint": "RShoulderRoll",
-                "halfway": "-30",
-                "maximum": "-60",
-            }
-        }
-    };
 
     function log_error(err) {
         console.log("Error: " + err)
@@ -115,20 +62,6 @@
                 });
             });
         }).fail(log_error)
-    }
-
-    function nao_reconnect(robotIp) {
-        setTimeout(() => { self.connect(robotIp) }, 1000)
-    }
-
-    function waitForSayFinish() {
-        if (robot.TextDone == 0) {
-            setTimeout(function () { waitForSayFinish() }, 50);
-        }
-    }
-
-    function execute_leap_executor() {
-        var run = setInterval(function () { leapJointMovement(0.5) }, 0.1 * 1000);
     }
 
     function execute_event_listeners() {
@@ -166,29 +99,64 @@
         });
     }
 
-    function armJointMovement(joint, angle, speed = 0.5) {
-        session.service("ALMotion").then(function (motion) {
-            motion.setAngles(joint, angle, speed);
-        }).fail(log_error)
-    }
-
     function conditional(value) {
         if (value == "disabled" || value == "Stand")
             return true;
     }
     
-    self.connect = (robotIP) => {
-        session = new QiSession(robotIP)
-        session.socket().on('connect', () => {
-            console.log('QiSession connected!')
-            set_up()
-            execute_event_listeners()
-        }).on('disconnect', () => {
-            console.log('QiSession disconnected!')
-            nao_reconnect(robotIP)
-        }).on('connect_error', () => {
-            nao_reconnect(robotIP)
-        })
+    function _connect(ip, success, fail) {
+      try {
+        console.log(`Trying Nao on "${ip}"`)
+        session = new QiSession(ip)
+      } catch(ex) {
+        console.trace(ex)
+      }
+      session.socket().on('connect', success
+        ).on('disconnect', ()=>{fail('disconnect')}
+        ).on('error', ()=>{fail('error')})
+    }
+
+    let _ips = []
+    function nextIP(callback, ip="") {
+      if (ip) {
+        callback(ip)
+      } else {
+        if (_ips.length == 0) { // get ips...
+          fetch('/nao').then(
+            (res)=>res.json()).then(
+              (data) => {
+                for(let j in data) {
+                  _ips.push(data[j].ip)
+                }
+                callback(_ips.pop())
+              }
+            )
+        } else {
+          callback(_ips.pop())
+        }
+      }
+    }
+
+    self.connect = (ip="") => {
+      nextIP((ip)=>{
+        if (ip) { // setup session...
+            _connect(ip, () => {
+                console.log('QiSession connected!')
+                set_up()
+                execute_event_listeners()
+            }, (err) => {
+                if (err == 'disconnect') {
+                    console.log('QiSession disconnected - trying same IP')
+                    setTimeout(() => { self.connect(ip) }, 1000)
+                } else {
+                    console.log('QiSession error - trying another IP')
+                    setTimeout(() => { self.connect() }, 50)
+                }
+            })
+        } else {
+          console.log("No IP for robot")
+        }
+      }, ip)
     }
 
     let audioSequence = []
@@ -224,11 +192,7 @@
         session.service('ALAudioDevice').then(ad => ad.setOutputVolume(volume)).fail(log_error)
     }
 
-    self.speechHandler = (anim, text, pitch, speed, echo, interrupt=false, val) => {
-      if (typeof val === 'string' && val.length) {
-          text = val
-      }
-
+    self.speechHandler = (anim, text, pitch, speed, echo, interrupt=false) => {
       self.changeVoice(pitch, speed, echo)
       if (interrupt) audioSequence = []
       audioInterrupt = interrupt
@@ -249,20 +213,6 @@
           audioInterrupt = true
       })
     }
-
-    self.speechHandlerTest = (anim, text, pitch, speed, echo, interrupt=false, val) => {
-      if (typeof val === 'string' && val.length) {
-          text = val
-      }
-
-        self.changeVoice(pitch, speed, echo)
-        if (anim == "None") {
-            self.say(text, interrupt)
-        } else {
-            self.animatedSay(anim, text, interrupt)
-        }
-    }
-
 
     self.changeVoice = (pitch, speed, echo) => {
         session.service("ALTextToSpeech").then((tts) => {
@@ -434,26 +384,6 @@
         }).fail(log_error)
     }
 
-    self.moveArm = function (arm, direction, angle) {
-        console.log("Arm: " + arm + "\nDirection: " + direction + "\nAngle: " + angle);
-        var json = ARM_LOOKUP;
-        var data = json[arm][direction];
-        var armJoint = data["joint"];
-        console.log(armJoint);
-        var finalAngle = data[angle];
-        session.service("ALMotion").then(function (motion) {
-            newAngle = helper_ConvertAngleToRads(finalAngle);
-            motion.setAngles(armJoint, newAngle, 0.5);
-        }).fail(log_error)
-    }
-
-    self.moveMotor = function (val, motor, direction) {
-        session.service("ALMotion").then(function (motion) {
-            newAngle = helper_ConvertAngleToRads(finalAngle);
-            motion.setAngles(armJoint, (2 + ((val - 0) * (-2 - 2)) / (1 - 0)), 0.5);
-        }).fail(log_error)
-    }
-
     let motionSequence = []
     let motionInterrupt = true
 
@@ -527,10 +457,6 @@
         }
     }
 
-    self.personPerception = function (callback, destruct = true) {
-        self.lookForPerson(session, callback, destruct)
-    }
-
     self.changeAutonomousLife = (state, callback) => {
         session.service("ALAutonomousLife").then((al) => {
             setTimeout(() => { // setTimeout override set_up behaviour
@@ -542,8 +468,6 @@
     }
 
     self.createWordList = function (listName) {
-        
-
         var v = new vocabList(listName, [])
         self._list.push(v)
     }
@@ -558,9 +482,7 @@
         }
     }
 
-
     self.listenForWords = function (listName, vocab, confidence, blockID, callback, destruct = true) {
-        // waitForSayFinish();
         if (!listName.length) { listName = "default" }
 
         self.addToWordList(listName, vocab)
@@ -592,13 +514,6 @@
             posture.goToPosture(pose, speed)
         }).fail(log_error)
     }
-
-    self.stopListening = function (callback) {
-        session.service("ALSpeechRecognition").then(function (sr) {
-            sr.unsubscribe("NAO_USER");
-        });
-    }
-
 
     /**
    * Class instance to store event disconnector

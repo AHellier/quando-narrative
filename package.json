@@ -10,6 +10,13 @@
     "start": "node .",
     "install_local": "npm install pouchdb pouchdb-server pouchdb-find robotjs serialport"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "inventor/*",
+      "hub/*",
+      "client/*"
+    ]
+  },
   "author": "Andrew Stratton",
   "license": "ISC",
   "dependencies": {
