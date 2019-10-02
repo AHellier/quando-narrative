@@ -1,8 +1,8 @@
-<div class="quando-block" data-quando-javascript="quando.robot.connect('${ip}')">
+<div class="quando-block" data-quando-javascript="quando.robot.connect('${ip}', ()=>{${box}})">
   <div class="quando-left quando-robot"></div>
   <div class="quando-right">
     <div class="quando-row quando-robot">🤖
-      Connect
+      When found
       <select data-quando-name="extras" class="quando-toggle">
         <option value="hidden">+</option>
         <option value="show">-</option>
@@ -13,5 +13,7 @@
         <input data-quando-name='ip' type='text' value='' placeholder='' data-quando-encode='normal' />
       </span>
     </div>
+    <div data-quando-name="box" class="quando-box"></div>
+    <div class="quando-row quando-robot"></div>
   </div>
 </div>

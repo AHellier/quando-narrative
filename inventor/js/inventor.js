@@ -429,8 +429,6 @@ function _setupDragula() {
 }
 
 self.setup = () => {
-  //OK this is bad but temporary my bad
-  _updateIPList()
   window.onbeforeunload = () => {
     let obj = self.getScriptAsObject()
     if (obj.length) {

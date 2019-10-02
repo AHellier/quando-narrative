@@ -283,10 +283,7 @@
     _set_or_append_tag_text(text, 'quando_title', append)
   }
 
-  self.text = function (text = '', append = false, val) {
-    if (typeof val === 'string' && val.length) {
-      text = val
-    }
+  self.text = function (text = '', append = false) {
     _set_or_append_tag_text(text, 'quando_text', append)
   }
 

@@ -76,7 +76,6 @@
         session.service("ALMemory").then(function (ALMemory) {
             ALMemory.subscriber("ALTextToSpeech/CurrentSentence").then(function (sub) {
                 sub.signal.connect(function (value) {
-                    console.log(value);
                     robot.TextToSpeech.CurrentSentence = value;
                 });
             });
@@ -137,20 +136,21 @@
       }
     }
 
-    self.connect = (ip="") => {
+    self.connect = (ip="", callback) => {
       nextIP((ip)=>{
         if (ip) { // setup session...
             _connect(ip, () => {
                 console.log('QiSession connected!')
                 set_up()
                 execute_event_listeners()
+                callback()
             }, (err) => {
                 if (err == 'disconnect') {
                     console.log('QiSession disconnected - trying same IP')
-                    setTimeout(() => { self.connect(ip) }, 1000)
+                    setTimeout(() => { self.connect(ip, callback) }, 1000)
                 } else {
                     console.log('QiSession error - trying another IP')
-                    setTimeout(() => { self.connect() }, 50)
+                    setTimeout(() => { self.connect('', callback) }, 50)
                 }
             })
         } else {
