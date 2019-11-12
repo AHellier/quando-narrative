@@ -186,6 +186,10 @@ input[type="color"] {
   border-left: 3px solid rgba(128, 64, 64, 0.5);
 }
 
+.will-be-discard.quando-left { border-left: 3px solid rgba(150, 150, 150, 0.5); }
+.quando-inventor-input-raw.quando-left { border-left: 3px solid #c3bb81; }
+.quando-inventor-collection-extras.quando-left { border-left: 3px solid rgba(88, 161, 156, 0.57); }
+
 .quando-inventor { background: black; }
 .quando-display { background: #EEBB70; }
 .quando-media { background: #C5E1A5; }
@@ -208,7 +212,9 @@ input[type="color"] {
 .quando-inventor-collection { background: hsl(274, 50%, 90%); }
 .quando-inventor-picker { background: hsl(80, 50%, 90%); }
 .quando-eeg { color: white; background: #f75a00; }
-
+.quando-inventor-input-raw { background: #f0ebc4f5; }
+.quando-inventor-collection-extras { background: hsla(175, 54%, 70%, 0.59); }
+.will-be-discard { background: #C3C3C3;}
 
 .quando-eeg input, .quando-eeg select {
   color: black;
